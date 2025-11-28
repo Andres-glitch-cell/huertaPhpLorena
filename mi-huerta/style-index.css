@@ -1,0 +1,238 @@
+/* style-index.css – VERSIÓN FINAL, TODO CENTRADO Y CON ESPACIO PERFECTO */
+
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700&family=Playfair+Display:wght@700&display=swap");
+/* ← Carga las tipografías Inter (texto normal) y Playfair Display (título grande) desde Google Fonts */
+
+:root {
+  --verde1: #73ffcc;
+  /* Verde claro del degradado de los botones */
+  --verde2: #4696ff;
+  /* Azul-verde del degradado de los botones */
+  --texto: #111;
+  /* Color oscuro para texto general */
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  /* ← Hace que padding y border no sumen al ancho/alto */
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  min-height: 100dvh;
+  /* Altura mínima = 100% de la ventana */
+  background: linear-gradient(-45deg, #beff78, #99ff94, #73ffcc, #f0fff4);
+  background-size: 400% 400%;
+  /* Para que la animación del fondo se mueva bien */
+  animation: fondo 20s ease infinite;
+  /* Animación del fondo que cambia de color */
+  color: var(--texto);
+  padding: 140px 20px 80px;
+  /* Espacio arriba (para el mensaje), laterales y abajo */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* ← Todo el contenido centrado horizontalmente */
+}
+
+/* Mensaje de "¡Conexión exitosa!" que aparece arriba */
+.mensajeExito {
+  position: fixed;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  /* Centrado perfecto horizontal */
+  font-size: 3.4rem;
+  font-weight: 800;
+  background: linear-gradient(90deg, #00ffb8, var(--verde2));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  /* Texto con degradado brillante */
+  animation: texto 6s linear infinite;
+  /* Efecto brillo que se mueve */
+  z-index: 9999;
+  pointer-events: none;
+  /* No interfiere con clics */
+  text-align: center;
+  width: 90%;
+  max-width: 1200px;
+  display: none !important;
+  /* Se muestra solo con JS */
+}
+
+.fade-out {
+  opacity: 0;
+  transition: opacity 1s;
+}
+
+/* Desvanecer el mensaje */
+
+/* TÍTULO PRINCIPAL */
+.tituloGestionCultivos {
+  font-family: "Playfair Display", serif;
+  font-size: 64px;
+  font-weight: 900;
+  text-align: center;
+  margin-bottom: 60px;
+  /* Espacio grande debajo del título */
+  background: linear-gradient(90deg, #000, #0a4d2b);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  /* Título con degradado negro → verde oscuro */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  /* Espacio entre el icono y el texto */
+}
+
+/* Icono de la planta a la izquierda del título (antes usabas emoji, ahora imagen) */
+.tituloGestionCultivos::before {
+  content: "";
+  width: 90px;
+  height: 90px;
+  background: url("handGreenPlant.png") center/contain no-repeat;
+  flex-shrink: 0;
+  /* No se achica nunca */
+}
+
+/* Contenedor de los 3 botones */
+.bloqueBotones {
+  text-align: center;
+  /* Centra los botones si se usan inline */
+  margin-bottom: 80px;
+  /* Espacio grande antes de la tabla */
+}
+
+/* Estilo de cada botón */
+.button {
+  background: linear-gradient(135deg, var(--verde1), var(--verde2));
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 16px 36px;
+  /* Botones grandes y cómodos */
+  margin: 10px;
+  /* Espacio entre botones */
+  font-size: 17px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(70, 150, 255, .3);
+  transition: .3s;
+  /* Animación suave al hover */
+}
+
+.button:hover {
+  transform: translateY(-5px);
+  /* Sube un poco */
+  box-shadow: 0 18px 35px rgba(70, 150, 255, .4);
+  /* Sombra más fuerte */
+}
+
+/* Contenedor de la tabla */
+.table-container {
+  width: 100%;
+  max-width: 1100px;
+  margin: 40px 0;
+  /* Espacio arriba y abajo */
+  border-radius: 16px;
+  overflow: hidden;
+  /* Para que las esquinas redondeadas funcionen */
+  box-shadow: 0 15px 40px rgba(0, 0, 0, .12);
+  border: 1px solid rgba(115, 255, 204, .3);
+  background: white;
+}
+
+/* Estilos de la tabla */
+.styled-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.styled-table thead {
+  background: linear-gradient(135deg, #111, #003314);
+  /* Cabecera oscura con degradado */
+  color: white;
+}
+
+.styled-table th,
+.styled-table td {
+  padding: 18px 20px;
+}
+
+.styled-table th {
+  font-weight: 600;
+  text-align: left;
+}
+
+.styled-table tbody tr {
+  border-bottom: 1px solid rgba(115, 255, 204, .3);
+  transition: .25s;
+}
+
+.styled-table tbody tr:hover {
+  background: rgba(115, 255, 204, .15);
+}
+
+/* Hover suave */
+.styled-table tbody tr:nth-child(even) {
+  background: rgba(240, 255, 244, .3);
+}
+
+/* Filas alternas */
+
+/* ANIMACIONES DEL FONDO Y DEL TEXTO BRILLANTE */
+@keyframes fondo {
+
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes texto {
+  to {
+    background-position: 200% center;
+  }
+}
+
+/* RESPONSIVE – Todo sigue viéndose de puta madre en móvil */
+@media (max-width:768px) {
+  body {
+    padding: 110px 15px 60px;
+  }
+
+  .tituloGestionCultivos {
+    font-size: 46px;
+    gap: 18px;
+    margin-bottom: 50px;
+  }
+
+  .tituloGestionCultivos::before {
+    width: 70px;
+    height: 70px;
+  }
+
+  .bloqueBotones {
+    margin-bottom: 60px;
+  }
+
+  /* En móvil los botones ocupan casi todo el ancho y uno debajo del otro */
+  .button {
+    display: block;
+    /* Fuerza salto de línea */
+    width: 90%;
+    max-width: 340px;
+    margin: 12px auto;
+    /* Centrados perfectamente */
+    padding: 18px;
+  }
+}
