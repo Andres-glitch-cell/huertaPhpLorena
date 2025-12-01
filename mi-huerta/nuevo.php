@@ -1,113 +1,3 @@
-<?php
-
-require_once "conexion.php";
-$conexion_status_msg = "";
-// Define la función 'cicloCultivo' que acepta un entero.
-function cicloCultivo(int $dias): string
-{
-
-    if ($dias < 20) {
-        return "Corto";
-    } elseif ($dias < 50) {
-        return "Medio";
-    } else {
-        return "Tardío";
-    }
-}
-
-// 1. PROCESAMIENTO DEL FORMULARIO
-if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Comprueba si el script se está ejecutando después de un envío de formulario (método POST).
-    $conexion = conectarBBDD();
-    // Esto es el formato de la BBDD para que "técnicamente" acepte acentos que no los acepta pero bueno
-    mysqli_set_charset($conexion, "utf8mb4");
-
-    if (!$conexion) {
-        $mensaje = "<div class='msg error'>No se pudo conectar a la base de datos.</div>";
-    } else {
-        // 2.1. LECTURA Y VALIDACIÓN DE DATOS
-        // Lee el ID opcional. Usa null si no es un entero válido.
-        $id_input = filter_input(INPUT_POST, 'id', FILTER_VALIDATE_INT);
-        if ($id_input !== false && $id_input !== null) {
-            // Si la entrada fue un número entero válido
-            $id = (int) $id_input;
-        } else {
-            // Si la validación falló (false) o el campo estaba vacío (null)
-            $id = null; // Lo ignora y guarda null
-        }
-        // (Obtiene 'nombre', sanitiza, elimina espacios, usa cadena vacía si es null.)
-        $nombre = trim(filter_input(INPUT_POST, 'nombre', FILTER_SANITIZE_FULL_SPECIAL_CHARS) ?? '');
-
-        // Lee el TIPO. Ahora espera el nombre completo (Hortaliza, Fruto, etc.).
-        $tipo = trim(filter_input(INPUT_POST, 'tipo', FILTER_SANITIZE_FULL_SPECIAL_CHARS) ?? ''); // Obtiene 'tipo' (el nombre completo) y lo sanitiza.
-
-        // Lee y valida los días.
-        $dias_input = filter_input(INPUT_POST, 'dias', FILTER_VALIDATE_INT);                   // Intenta obtener el campo 'dias' y validarlo como entero.
-        // Comprobación de si $dias_input es un valor de días válido.
-        if ($dias_input !== false && $dias_input !== null) {
-            $dias = (int) $dias_input;
-        } else {
-            $dias = 0;
-        }
-        // Llama a la función y le pasa como parámetros la variable $dias
-        $ciclo = cicloCultivo($dias);
-
-        // VALIDACIÓN FINAL
-        if (empty($nombre) || empty($tipo) || $dias <= 0) {                                             
-            $mensaje = "<div class='msg error'>Rellena todos los campos obligatorios correctamente.</div>"; // Si la validación falla, establece un mensaje de error.
-        } else {
-            // 2.2. PREPARACIÓN E INSERCIÓN
-            // Proteger cadenas con mysqli_real_escape_string.
-            $nombre_esc = mysqli_real_escape_string($conexion, $nombre); // Escapa el nombre para prevenir inyecciones SQL.
-            // USAMOS EL NOMBRE COMPLETO para la BD, que debe coincidir con el ENUM.
-            $tipo_esc = mysqli_real_escape_string($conexion, $tipo);    // Escapa el tipo.
-            $ciclo_esc = mysqli_real_escape_string($conexion, $ciclo);   // Escapa el ciclo.
-            $dias_esc = (int) $dias;                                    // Confirma que días es un entero (aunque ya fue validado).
-
-            // Define si se incluye el ID explícitamente o se usa AUTO_INCREMENT.
-            $columnas = "nombre, tipo, dias_cosecha, ciclo_cultivos";          // Define las columnas a insertar (sin 'id').
-            $valores = "'$nombre_esc', '$tipo_esc', $dias_esc, '$ciclo_esc'"; // Define los valores correspondientes (sin 'id').
-
-            if ($id !== null) {                    // Verifica si el usuario proporcionó un ID manual.
-                $id_esc = (int) $id;                 // Asegura que el ID manual sea un entero.
-                $columnas = "id, " . $columnas;        // Añade 'id' a la lista de columnas.
-                $valores = $id_esc . ", " . $valores; // Añade el valor del ID al inicio de los valores.
-            }
-
-            $sql = "INSERT INTO cultivos ($columnas) VALUES ($valores)";
-
-            if (mysqli_query($conexion, $sql)) {                                                                                                                                                                                                                 // Intenta ejecutar la consulta SQL en la ba
-                $new_id = $id ?? mysqli_insert_id($conexion);                                                                                                                                                                                                        // Determina el ID insertado: usa $id (manual) o el ID generado automáticamente.
-                // Usamos $tipo (el nombre completo) para el mensaje de éxito.
-                $mensaje = "<div class='msg success'>✅ Cultivo '" . htmlspecialchars($nombre) . "' (Tipo: " . htmlspecialchars($tipo) . ") insertado correctamente! (ID: " . (int) $new_id . ") - Ciclo: <strong>" . htmlspecialchars($ciclo) . "</strong></div>"; // Establece el mensaje de éxito.
-            } else {
-                // Manejo de error de la primera inserción.
-                $errno = mysqli_errno($conexion); // Obtiene el código de error numérico de MySQL (ej. 1062 para duplicado).
-                $error_sql = mysqli_error($conexion); // Obtiene el mensaje de error textual de MySQL.
-
-                if ($errno === 1062 && $id !== null) {                                                                                                            // Verifica si el error es de clave duplicada (1062) Y si se intentó insertar con un ID manual.
-                    $sql_fallback = "INSERT INTO cultivos (nombre, tipo, dias_cosecha, ciclo_cultivos) VALUES ('$nombre_esc', '$tipo_esc', $dias_esc, '$ciclo_esc')"; // Construye una consulta sin ID.
-
-                    if (mysqli_query($conexion, $sql_fallback)) {                                                                                                                                                                                                                                                         // Intenta ejecutar la consulta de "fallback" (dejar que la BD asigne el ID).
-                        $new_id = mysqli_insert_id($conexion);                                                                                                                                                                                                                                                                // Obtiene el nuevo ID generado automáticamente.
-                        // Mensaje de advertencia de ID cambiado.
-                        $mensaje = "<div class='msg warning'>⚠️ El ID solicitado (" . (int) $id_esc . ") ya estaba ocupado; se ha asignado el ID <strong>" . (int) $new_id . "</strong> al cultivo <strong>" . htmlspecialchars($nombre) . "</strong>. - Ciclo: <strong>" . htmlspecialchars($ciclo) . "</strong></div>"; // Establece el mensaje de advertencia.
-                    } else {
-                        // El fallback también falló.
-                        $mensaje = "<div class='msg error'>❌ ERROR SQL: Fallo al intentar auto-asignar ID tras conflicto. " . htmlspecialchars($error_sql) . "</div>"; // Establece un mensaje de error si el fallback falla.
-                    }
-                } else {
-                    // Otros errores SQL (sintaxis, datos incompatibles, etc.).
-                    $mensaje = "<div class='msg error'>❌ ERROR SQL: Fallo al insertar. (Código: $errno): " . htmlspecialchars($error_sql) . "</div>"; // Establece un mensaje de error genérico con código y descripción SQL.
-                }
-            }
-        }
-    }
-    // Asegura el cierre de la conexión después de terminar.
-    if ($conexion) {
-        mysqli_close($conexion); // Cierra la conexión a la base de datos.
-    }
-}
-?>
 <!DOCTYPE html>
 <html lang="es">
 
@@ -154,6 +44,112 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Comprueba si el script se está 
             <button type="submit" name="insertarValoresSQL">INSERTAR CULTIVO</button>
         </form>
     </div>
+    <?php
+    require_once "/config/conexion.php";
+    function cicloCultivo(int $dias): string
+    {
+        if ($dias < 20) {
+            return "Corto";
+        } elseif ($dias < 50) {
+            return "Medio";
+        } else {
+            return "Tardío";
+        }
+    }
+
+    // 1. PROCESAMIENTO DEL FORMULARIO
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Comprueba si el script se está ejecutando después de un envío de formulario (método POST).
+        $conexion = conectarBBDD();
+        // Esto es el formato de la BBDD para que "técnicamente" acepte acentos que no los acepta pero bueno
+        // ! mysqli_set_charset($conexion, "utf8mb4");
+    
+        if (!$conexion) {
+            $mensaje = "<div class='msg error'>No se pudo conectar a la base de datos.</div>";
+        } else {
+            // 2.1. LECTURA Y VALIDACIÓN DE DATOS
+            // Lee el ID opcional. Usa null si no es un entero válido.
+            $id_input = filter_input(INPUT_POST, 'id', FILTER_VALIDATE_INT);
+            if ($id_input !== false && $id_input !== null) {
+                // Si la entrada fue un número entero válido
+                $id = (int) $id_input;
+            } else {
+                // Si la validación falló (false) o el campo estaba vacío (null)
+                $id = null; // Lo ignora y guarda null
+            }
+            // (Obtiene 'nombre', sanitiza, elimina espacios, usa cadena vacía si es null.)
+            $nombre = trim(filter_input(INPUT_POST, 'nombre', FILTER_SANITIZE_FULL_SPECIAL_CHARS) ?? '');
+
+            // Lee el TIPO. Ahora espera el nombre completo (Hortaliza, Fruto, etc.).
+            $tipo = trim(filter_input(INPUT_POST, 'tipo', FILTER_SANITIZE_FULL_SPECIAL_CHARS) ?? ''); // Obtiene 'tipo' (el nombre completo) y lo sanitiza.
+    
+            // Lee y valida los días.
+            $dias_input = filter_input(INPUT_POST, 'dias', FILTER_VALIDATE_INT);                   // Intenta obtener el campo 'dias' y validarlo como entero.
+            // Comprobación de si $dias_input es un valor de días válido.
+            if ($dias_input !== false && $dias_input !== null) {
+                $dias = (int) $dias_input;
+            } else {
+                $dias = 0;
+            }
+            // Llama a la función y le pasa como parámetros la variable $dias
+            $ciclo = cicloCultivo($dias);
+
+            // VALIDACIÓN FINAL
+            if (empty($nombre) || empty($tipo) || $dias <= 0) {
+                $mensaje = "<div class='msg error'>Rellena todos los campos obligatorios correctamente.</div>"; // Si la validación falla, establece un mensaje de error.
+            } else {
+                // 2.2. PREPARACIÓN E INSERCIÓN
+                // Proteger cadenas con mysqli_real_escape_string.
+                $nombre_esc = mysqli_real_escape_string($conexion, $nombre); // Escapa el nombre para prevenir inyecciones SQL.
+                // USAMOS EL NOMBRE COMPLETO para la BD, que debe coincidir con el ENUM.
+                $tipo_esc = mysqli_real_escape_string($conexion, $tipo);    // Escapa el tipo.
+                $ciclo_esc = mysqli_real_escape_string($conexion, $ciclo);   // Escapa el ciclo.
+                $dias_esc = (int) $dias;                                    // Confirma que días es un entero (aunque ya fue validado).
+    
+                // Define si se incluye el ID explícitamente o se usa AUTO_INCREMENT.
+                $columnas = "nombre, tipo, dias_cosecha, ciclo_cultivos";          // Define las columnas a insertar (sin 'id').
+                $valores = "'$nombre_esc', '$tipo_esc', $dias_esc, '$ciclo_esc'"; // Define los valores correspondientes (sin 'id').
+    
+                if ($id !== null) {                    // Verifica si el usuario proporcionó un ID manual.
+                    $id_esc = (int) $id;                 // Asegura que el ID manual sea un entero.
+                    $columnas = "id, " . $columnas;        // Añade 'id' a la lista de columnas.
+                    $valores = $id_esc . ", " . $valores; // Añade el valor del ID al inicio de los valores.
+                }
+
+                $sql = "INSERT INTO cultivos ($columnas) VALUES ($valores)";
+
+                if (mysqli_query($conexion, $sql)) {                                                                                                                                                                                                                 // Intenta ejecutar la consulta SQL en la ba
+                    $new_id = $id ?? mysqli_insert_id($conexion);                                                                                                                                                                                                        // Determina el ID insertado: usa $id (manual) o el ID generado automáticamente.
+                    // Usamos $tipo (el nombre completo) para el mensaje de éxito.
+                    $mensaje = "<div class='msg success'>✅ Cultivo '" . htmlspecialchars($nombre) . "' (Tipo: " . htmlspecialchars($tipo) . ") insertado correctamente! (ID: " . (int) $new_id . ") - Ciclo: <strong>" . htmlspecialchars($ciclo) . "</strong></div>"; // Establece el mensaje de éxito.
+                } else {
+                    // Manejo de error de la primera inserción.
+                    $errno = mysqli_errno($conexion); // Obtiene el código de error numérico de MySQL (ej. 1062 para duplicado).
+                    $error_sql = mysqli_error($conexion); // Obtiene el mensaje de error textual de MySQL.
+    
+                    if ($errno === 1062 && $id !== null) {                                                                                                            // Verifica si el error es de clave duplicada (1062) Y si se intentó insertar con un ID manual.
+                        $sql_fallback = "INSERT INTO cultivos (nombre, tipo, dias_cosecha, ciclo_cultivos) VALUES ('$nombre_esc', '$tipo_esc', $dias_esc, '$ciclo_esc')"; // Construye una consulta sin ID.
+    
+                        if (mysqli_query($conexion, $sql_fallback)) {                                                                                                                                                                                                                                                         // Intenta ejecutar la consulta de "fallback" (dejar que la BD asigne el ID).
+                            $new_id = mysqli_insert_id($conexion);                                                                                                                                                                                                                                                                // Obtiene el nuevo ID generado automáticamente.
+                            // Mensaje de advertencia de ID cambiado.
+                            $mensaje = "<div class='msg warning'>⚠️ El ID solicitado (" . (int) $id_esc . ") ya estaba ocupado; se ha asignado el ID <strong>" . (int) $new_id . "</strong> al cultivo <strong>" . htmlspecialchars($nombre) . "</strong>. - Ciclo: <strong>" . htmlspecialchars($ciclo) . "</strong></div>"; // Establece el mensaje de advertencia.
+                        } else {
+                            // El fallback también falló.
+                            $mensaje = "<div class='msg error'>❌ ERROR SQL: Fallo al intentar auto-asignar ID tras conflicto. " . htmlspecialchars($error_sql) . "</div>"; // Establece un mensaje de error si el fallback falla.
+                        }
+                    } else {
+                        // Otros errores SQL (sintaxis, datos incompatibles, etc.).
+                        $mensaje = "<div class='msg error'>❌ ERROR SQL: Fallo al insertar. (Código: $errno): " . htmlspecialchars($error_sql) . "</div>"; // Establece un mensaje de error genérico con código y descripción SQL.
+                    }
+                }
+            }
+        }
+        // Asegura el cierre de la conexión después de terminar.
+        if ($conexion) {
+            mysqli_close($conexion); // Cierra la conexión a la base de datos.
+        }
+    }
+    ?>
 </body>
 
 </html>

@@ -4,11 +4,10 @@
 // ? Comentarios 2
 function conectarBBDD()
 {
-    $server = "localhost";
-    $user = "administrador";
-    $pass = "R00tR00t*12345";
-    $db = "huerta_db";
-
+    $server = getenv('DB_HOST');
+    $user = getenv('DB_USERNAME');
+    $pass = getenv('DB_PASSWORD');
+    $db = getenv('DB_NAME');
     $conexion = mysqli_connect($server, $user, $pass, $db);
 
     if (!$conexion) {
