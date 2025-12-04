@@ -11,7 +11,7 @@
 // # Referencia a un ticket, enlace o doc. (Gris claro, Fondo Sólido Oscuro)
 // + Código recién añadido o nueva funcionalidad (Verde claro, Negrita, Cursiva)
 
-require_once "/config/conexion.php";
+require_once "./config/conexion.php"; // Incluye el archivo de conexión a la base de datos.
 function cicloCultivo(int $dias): string
 {
     if ($dias < 20) {
@@ -30,8 +30,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Comprueba si el script se está 
     // TODO: mysqli_set_charset($conexion, "utf8mb4");
 
     if (!$conexion) {
-        $mensaje = "<div class='msg error'>No se pudo conectar a la base de datos.</div>";
+        // TODO: $mensaje = "<div class='msg error'>No se pudo conectar a la base de datos.</div>";
+        ?>
+        <script>
+            alert("mensaje de conexion bbdd no existosa");
+        </script>
+        <?php
     } else {
+                ?>
+        <script>
+            alert("mensaje de conexion bbdd existosa");
+        </script>
+        <?php
         // 2.1. LECTURA Y VALIDACIÓN DE DATOS
         // Lee el ID opcional. Usa null si no es un entero válido.
         $id_input = filter_input(INPUT_POST, 'id', FILTER_VALIDATE_INT);
@@ -76,13 +86,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Comprueba si el script se está 
             $columnas = "nombre, tipo, dias_cosecha, ciclo_cultivos";          // Define las columnas a insertar (sin 'id').
             $valores = "'$nombre_esc', '$tipo_esc', $dias_esc, '$ciclo_esc'"; // Define los valores correspondientes (sin 'id').
 
-             // @ Verifica si el usuario introdujo un ID manualmente
-            if ($id !== null) {                   
+            // @ Verifica si el usuario introdujo un ID manualmente
+            if ($id !== null) {
                 $id_esc = (int) $id;
-                 // & Añade 'id' a la lista de columnas (si en este caso se proporciona).
+                // & Añade 'id' a la lista de columnas (si en este caso se proporciona).
                 $columnas = "id, " . $columnas;
-                 // ? Añade el valor del ID al inicio de la lista de valores. 
-                $valores = $id_esc . ", " . $valores; 
+                // ? Añade el valor del ID al inicio de la lista de valores. 
+                $valores = $id_esc . ", " . $valores;
             }
 
             // TODO: QUITAR SENTENCIAS SIN PREPARED STMT -> $sql = "INSERT INTO cultivos ($columnas) VALUES ($valores)";
@@ -182,7 +192,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Comprueba si el script se está 
                 <label for="dias">Días hasta cosecha:</label>
                 <input type="number" name="dias" id="dias" placeholder="Días hasta cosecha" min="1" required>
             </div>
-            <button type="submit" name="insertarValoresSQL">INSERTAR CULTIVO</button>
+            <button onclick="procesar()" type="submit" name="insertarValoresSQL">INSERTAR CULTIVO</button>
+
         </form>
     </div>
 </body>
