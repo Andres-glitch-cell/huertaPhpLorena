@@ -398,15 +398,11 @@
                 const now = new Date();
                 // Capturamos las horas en formato 24h (0-23)
                 let hours = now.getHours();
-
                 // Los minutos se quedan igual, asegurando dos dígitos
                 const minutes = now.getMinutes().toString().padStart(2, '0');
-
                 // Formateamos las horas a dos dígitos (ej. 09 en lugar de 9)
                 hours = hours.toString().padStart(2, '0');
-
                 // Eliminamos la lógica de AM/PM
-
                 document.getElementById('hours').textContent = hours;
                 document.getElementById('minutes').textContent = minutes;
                 // Ocultamos o limpiamos el texto AM/PM

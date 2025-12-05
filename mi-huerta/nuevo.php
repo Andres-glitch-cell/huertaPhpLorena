@@ -139,6 +139,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Comprueba si el script se está 
             --fondo-terracota: #f5f0e6;
             /* Fondo de la tarjeta (Terracota/Crema de Jardín) */
             --color-texto-oscuro: #1a1a1a;
+            /* Degradado huerta para el botón */
+            --degradado-huerta: linear-gradient(90deg, var(--verde-esmeralda), var(--naranja-tierra));
         }
 
         * {
@@ -258,9 +260,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Comprueba si el script se está 
             margin-top: 50px;
             /* Centrado absoluto */
             position: absolute;
-            top: 43%;
+            top: 50%;
+            /* Centrado vertical */
             left: 50%;
+            /* Centrado horizontal */
             transform: translate(-50%, -50%);
+            /* Ajuste de centrado */
         }
 
         .card h1 {
@@ -311,33 +316,68 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Comprueba si el script se está 
             outline: none;
         }
 
-        /* BOTÓN DE INSERCIÓN */
-        .card button {
+        /* --- ESTILOS DEL NUEVO BOTÓN CON GRADIENTE Y NEON (Adaptados) --- */
+        /* El contenedor exterior asegura el ancho completo y el borde degradado */
+        .container {
+            position: relative;
+            padding: 3px;
+            background: var(--degradado-huerta);
+            /* Usa el degradado verde/naranja */
+            border-radius: 0.9em;
+            transition: all 0.4s ease;
+            margin-top: 25px;
             width: 100%;
-            background: linear-gradient(135deg, var(--verde-esmeralda), #33cc66);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            padding: 15px 25px;
+        }
+
+        /* El botón real que se pulsa */
+        .container .button {
             font-size: 1.1em;
-            font-weight: 700;
+            padding: 15px 25px;
+            border-radius: 0.6em;
+            border: none;
+            background-color: var(--fondo-terracota);
+            /* Fondo claro de la tarjeta */
+            color: var(--color-texto-oscuro);
             cursor: pointer;
-            /* Sombra de tierra y sombra verde */
-            box-shadow: 0 8px 0 #4a2c0f, 0 12px 15px rgba(0, 168, 120, 0.5);
-            transition: all 0.2s ease;
-            margin-top: 10px;
+            box-shadow: none;
+            width: 100%;
+            font-weight: 700;
+            transition: all 0.4s ease;
+            text-transform: uppercase;
+            /* Para que se vea más como botón de acción */
+            background-color: #193916ff
         }
 
-        .card button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 0 #4a2c0f, 0 15px 20px rgba(0, 168, 120, 0.7);
+        /* El pseudo-elemento que crea el efecto de brillo */
+        .container::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            margin: auto;
+            border-radius: 0.9em;
+            z-index: -10;
+            filter: blur(0);
+            transition: filter 0.4s ease;
+            background: var(--degradado-huerta);
         }
 
-        .card button:active {
-            transform: translateY(4px);
-            box-shadow: 0 4px 0 #4a2c0f;
+        /* Efecto NEON al pasar el ratón */
+        .container:hover::before {
+            background: var(--degradado-huerta);
+            filter: blur(1.2em);
+            opacity: 0.8;
         }
 
+        /* Efecto de PRESIONAR */
+        .container:active::before {
+            filter: blur(0.2em);
+        }
+
+        .container:active .button {
+            background-color: #fff;
+            /* Se aclara al presionar */
+            color: var(--verde-esmeralda);
+        }
 
         /* MEDIA QUERIES (Ajustes para móviles) */
         @media (max-width: 768px) {
@@ -354,7 +394,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Comprueba si el script se está 
             .card {
                 margin-top: 20px;
                 padding: 20px;
-                /* Eliminamos el centrado absoluto si hay mucho contenido antes */
+                /* Revertimos el centrado absoluto en móvil para mejor scroll */
                 position: relative;
                 top: auto;
                 left: auto;
@@ -365,63 +405,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Comprueba si el script se está 
                 font-size: 1em;
             }
         }
-
-        /* From Uiverse.io by mrhyddenn */
-        button {
-            background: transparent;
-            color: #fff;
-            font-size: 17px;
-            text-transform: uppercase;
-            font-weight: 600;
-            border: none;
-            padding: 20px 30px;
-            cursor: pointer;
-            perspective: 30rem;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.308);
-        }
-
-        button::before {
-            content: "";
-            display: block;
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            top: 0;
-            left: 0;
-            border-radius: 10px;
-            background: linear-gradient(320deg,
-                    rgba(0, 140, 255, 0.678),
-                    rgba(128, 0, 128, 0.308));
-            z-index: 1;
-            transition: background 3s;
-        }
-
-        button:hover::before {
-            animation: rotate 1s;
-            transition: all 0.5s;
-        }
-
-        @keyframes rotate {
-            0% {
-                transform: rotateY(180deg);
-            }
-
-            100% {
-                transform: rotateY(360deg);
-            }
-        }
     </style>
 </head>
 
 <body>
     <div class="content">
+
+        <!-- Mensaje de éxito/error/warning (si existe) -->
+        <?php echo $mensaje; ?>
+
         <div class="card">
-            <!-- From Uiverse.io by mrhyddenn -->
-            <button>
-                <a>Insertar Cultivos me</a><small><?php echo $conexion_status_msg; ?></small>
-            </button>
-            <?php echo $mensaje; ?>
+            <h1>
+                Insertar Cultivo
+                <small><?php echo $conexion_status_msg; ?></small>
+            </h1>
+
+
             <form method="post" action="">
                 <div class="field">
                     <label for="id">ID (opcional):</label>
@@ -446,10 +445,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Comprueba si el script se está 
                     <label for="dias">Días hasta cosecha:</label>
                     <input type="number" name="dias" id="dias" placeholder="Días hasta cosecha" min="1" required>
                 </div>
-                <button type="submit" name="insertarValoresSQL">INSERTAR CULTIVO</button>
+
+                <!-- Botón de inserción movido al final del formulario y con nuevo estilo -->
+                <div class="container">
+                    <button class="button" type="submit" name="insertarValoresSQL">Insertar Cultivo</button>
+                </div>
 
             </form>
         </div>
     </div>
 </body>
+
 </html>
