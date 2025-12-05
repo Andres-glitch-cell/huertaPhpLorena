@@ -9,9 +9,12 @@
         href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700&family=Playfair+Display:wght=700&display=swap"
         rel="stylesheet">
     <style>
+        /* COLORES DE HUERTA VIBRANTES */
         :root {
-            --verde1: #73ffcc;
-            --verde2: #4696ff;
+            --verde1: #9aff4d;
+            /* Lima Brillante */
+            --verde2: #00bfff;
+            /* Azul Cielo Brillante */
         }
 
         * {
@@ -22,7 +25,8 @@
 
         body {
             min-height: 100vh;
-            background: linear-gradient(135deg, #001a0d, #002b1a);
+            /* Fondo más saturado y profundo */
+            background: linear-gradient(135deg, #003314, #005020);
             font-family: 'Inter', sans-serif;
             color: #fff;
             overflow-x: hidden;
@@ -43,15 +47,18 @@
             transform: translateX(-50%);
             font-size: 3.2rem;
             font-weight: 800;
-            background: linear-gradient(90deg, #00ff9d, #00d0ff);
+            /* Degradado más amarillo/verde intenso */
+            background: linear-gradient(90deg, #d4ff00, #4dff9a);
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
-            text-shadow: 0 0 20px rgba(0, 255, 150, 0.6);
+            /* Sombra más intensa y brillante */
+            text-shadow: 0 0 25px rgba(212, 255, 0, 0.8);
             z-index: 9999;
             pointer-events: none;
             opacity: 0;
             transition: opacity 1s;
+            text-align: center;
         }
 
         .tituloGestionCultivos {
@@ -60,11 +67,13 @@
             font-weight: 900;
             text-align: center;
             margin: 40px 0 60px;
-            background: linear-gradient(90deg, #73ffcc, #ffffff, #73ffcc);
+            /* Degradado más brillante */
+            background: linear-gradient(90deg, var(--verde1), #ffffff, var(--verde1));
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
-            text-shadow: 0 4px 20px rgba(115, 255, 204, 0.5);
+            /* Sombra brillante */
+            text-shadow: 0 4px 25px rgba(154, 255, 77, 0.7);
             align-items: center;
         }
 
@@ -82,22 +91,26 @@
         }
 
         .button {
+            /* Uso de las nuevas variables de color */
             background: linear-gradient(135deg, var(--verde1), var(--verde2));
-            color: white;
+            color: #111;
+            /* Color de texto oscuro para mayor contraste */
             border: none;
             border-radius: 16px;
             padding: 18px 40px;
             margin: 12px;
             font-size: 18px;
-            font-weight: 600;
+            font-weight: 700;
+            /* Más grueso */
             cursor: pointer;
-            box-shadow: 0 10px 30px rgba(70, 150, 255, 0.4);
+            /* Sombra que usa los colores de acento */
+            box-shadow: 0 12px 30px rgba(0, 191, 255, 0.5);
             transition: all 0.3s ease;
         }
 
         .button:hover {
             transform: translateY(-8px);
-            box-shadow: 0 20px 40px rgba(70, 150, 255, 0.6);
+            box-shadow: 0 25px 45px rgba(154, 255, 77, 0.8);
         }
 
         /* TUS 3 BLOQUES DE CRISTAL */
@@ -151,22 +164,21 @@
             fill: #fff;
         }
 
-        /* RELOJ DIGITAL - **ESTILO MEJORADO** */
+        /* RELOJ DIGITAL */
         .card {
             position: fixed;
             top: 20px;
             right: 20px;
             width: 280px;
             height: 150px;
-            /* Fondo semitransparente que se funde con el fondo del body */
-            background: rgba(0, 43, 26, 0.4);
+            /* Fondo de la tarjeta ajustado al fondo del body */
+            background: rgba(0, 51, 20, 0.6);
             /* Borde más claro para el efecto cristal */
-            border: 1px solid rgba(115, 255, 204, 0.2);
-            /* El efecto clave de cristal */
+            border: 1px solid rgba(154, 255, 77, 0.3);
             backdrop-filter: blur(10px);
             border-radius: 15px;
             /* Sombra que usa los colores de acento */
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3), 0 0 20px rgba(115, 255, 204, 0.4);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3), 0 0 20px rgba(154, 255, 77, 0.4);
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -178,14 +190,13 @@
 
         .card:hover {
             /* Un poco más de brillo al pasar el ratón */
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5), 0 0 30px rgba(115, 255, 204, 0.6);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5), 0 0 30px rgba(154, 255, 77, 0.6);
         }
 
         .time-text {
             font-size: 50px;
             margin-left: 15px;
             font-weight: 600;
-            /* Cambiado a Inter para consistencia */
             font-family: 'Inter', sans-serif;
         }
 
@@ -200,9 +211,7 @@
             font-size: 18px;
             margin-left: 15px;
             font-weight: 500;
-            /* Cambiado a Inter para consistencia */
             font-family: 'Inter', sans-serif;
-            /* Ligeramente transparente para suavizarlo */
             opacity: 0.8;
         }
 
@@ -229,7 +238,8 @@
             border-radius: 20px;
             overflow: hidden;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-            border: 1px solid rgba(115, 255, 204, 0.5);
+            /* Borde más vibrante */
+            border: 1px solid rgba(154, 255, 77, 0.5);
             background: rgba(255, 255, 255, 0.97);
             backdrop-filter: blur(10px);
         }
@@ -241,7 +251,8 @@
         }
 
         .styled-table thead {
-            background: linear-gradient(135deg, #003314, #001a0d);
+            /* Encabezado con degradado verde profundo */
+            background: linear-gradient(135deg, #005c26, #003314);
             color: white;
         }
 
@@ -252,7 +263,8 @@
         }
 
         .styled-table tbody tr:hover {
-            background: rgba(115, 255, 204, 0.25);
+            /* Hover más claro y lima */
+            background: rgba(154, 255, 77, 0.35);
         }
 
         @media (max-width: 768px) {
@@ -304,10 +316,10 @@
 
     <div class="card">
         <p class="time-text">
-            <span id="hours">12</span>:<span id="minutes">00</span>
-            <span class="time-sub-text" id="ampm">PM</span>
+            <span id="hours">18</span>:<span id="minutes">56</span>
+            <span class="time-sub-text" id="ampm"></span>
         </p>
-        <p class="day-text" id="date">Cargando...</p>
+        <p class="day-text" id="date">viernes, 5 de diciembre de 2025</p>
         <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 16 16" fill="currentColor"
             class="moon">
             <path
