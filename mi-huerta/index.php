@@ -369,9 +369,9 @@
 
         <?php
         require_once "config/conexion.php";
-        conectarBBDD();
+        conectarBDD();
         if (isset($_POST['listarSentenciaSQL'])) {
-            $conexion = conectarBBDD();
+            $conexion = conectarBDD();
             $sql = "SELECT * FROM cultivos";
             $resultado = mysqli_query($conexion, $sql);
             if (!$resultado) {
