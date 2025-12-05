@@ -1,20 +1,13 @@
 <?php
-// CRÍTICO: Configuración para mostrar todos los errores de PHP en el navegador (ayuda a depurar el error HTTP 500)
+// CRÍTICO: Mostrar todos los errores (solo en desarrollo)
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
+require_once "conexion.php";
 
 // ===================================================================
-// SOLUCIÓN SIMPLE: CONEXIÓN DIRECTA CON CREDENCIALES HARDCODEADAS
-// Esto elimina la necesidad de Composer, 'vendor/autoload.php' y archivos .env.
+// FUNCIÓN PARA DETERMINAR EL CICLO DE CULTIVO
 // ===================================================================
-/**
- * Determina el ciclo de cultivo (Corto, Medio, Tardío) basado en los días de cosecha.
- *
- * @param int $dias Número de días hasta la cosecha.
- * @return string
- */
-
 function cicloCultivo(int $dias): string
 {
     if ($dias < 20) {
@@ -26,149 +19,99 @@ function cicloCultivo(int $dias): string
     }
 }
 
-// Inicialización de variables de estado
+// Inicialización de variables
 $conexion_status_msg = "<span style='color:#ff6347;'>Desconectado</span>";
 $mensaje = "";
 $conexion = null;
 
 // 1. PROCESAMIENTO DEL FORMULARIO
-if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Comprueba si el script se está ejecutando después de un envío de formulario (método POST).
-    $conexion = conectarBDD(); // Llama a la función para conectar a la base de datos.
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+    $conexion = conectarBDD();
 
     if (!$conexion) {
-        // Muestra "Desconectado" en rojo al fallar la conexión
         $conexion_status_msg = "<span style='color:#ff6347;'>Desconectado</span>";
-
-        // Mensaje de error simple, ya que las credenciales están hardcodeadas
-        $mensaje = "<div class='msg error'>No se pudo conectar a la base de datos. Verifique que MySQL esté activo y la BDD 'mi_huerta' exista.</div>";
-
+        $mensaje = "<div class='msg error'>No se pudo conectar a la base de datos. Verifique que MySQL esté activo y que exista la BDD 'mi_huerta'.</div>";
     } else {
-        // CORRECCIÓN: Se establece el charset para soporte de acentos y UTF-8
         mysqli_set_charset($conexion, "utf8mb4");
-
         $conexion_status_msg = "<span style='color:#00a878;'>Conectado</span>";
 
-        // 2.1. LECTURA Y VALIDACIÓN DE DATOS
-        // Lee el ID opcional. Usa null si no es un entero válido.
+        // Lectura y sanitización de datos
+        $id = null;
         $id_input = filter_input(INPUT_POST, 'id', FILTER_VALIDATE_INT);
         if ($id_input !== false && $id_input !== null) {
-            // Si la entrada fue un número entero válido
             $id = (int) $id_input;
-        } else {
-            // Si la validación falló (false) o el campo estaba vacío (null)
-            $id = null; // Lo ignora y guarda null
         }
-        // CORRECCIÓN: Se utiliza FILTER_UNSAFE_RAW para no codificar caracteres HTML.
+
         $nombre = trim(filter_input(INPUT_POST, 'nombre', FILTER_UNSAFE_RAW) ?? '');
+        $tipo = trim(filter_input(INPUT_POST, 'tipo', FILTER_UNSAFE_RAW) ?? '');
 
-        // CORRECCIÓN: Se utiliza FILTER_UNSAFE_RAW para no codificar caracteres HTML.
-        $tipo = trim(filter_input(INPUT_POST, 'tipo', FILTER_UNSAFE_RAW) ?? ''); // Obtiene 'tipo' (el nombre completo) y lo sanitiza.
+        $dias_input = filter_input(INPUT_POST, 'dias', FILTER_VALIDATE_INT);
+        $dias = ($dias_input !== false && $dias_input !== null) ? (int) $dias_input : 0;
 
-        // Lee y valida los días.
-        $dias_input = filter_input(INPUT_POST, 'dias', FILTER_VALIDATE_INT);                   // Intenta obtener el campo 'dias' y validarlo como entero.
-        // Comprobación de si $dias_input es un valor de días válido.
-        if ($dias_input !== false && $dias_input !== null) {
-            $dias = (int) $dias_input;
-        } else {
-            $dias = 0;
-        }
-        // Llama a la función y le pasa como parámetros la variable $dias
         $ciclo = cicloCultivo($dias);
 
-        // VALIDACIÓN FINAL
+        // Validación básica
         if (empty($nombre) || empty($tipo) || $dias <= 0) {
-            $mensaje = "<div class='msg error'>Rellena todos los campos obligatorios correctamente.</div>"; // Si la validación falla, establece un mensaje de error.
+            $mensaje = "<div class='msg error'>Rellena todos los campos obligatorios correctamente.</div>";
         } else {
-            // ! Sentencias Preparadas para la inserción
-
-            $stmt = null;
             $exito = false;
             $new_id = null;
 
-            // Define la consulta SQL de inserción
+            // Decidimos qué consulta usar
             if ($id !== null) {
-                // Si el ID se ha proporcionado, se intenta insertarlo manualmente.
                 $sql = "INSERT INTO cultivos (id, nombre, tipo, dias_cosecha, ciclo_cultivos) VALUES (?, ?, ?, ?, ?)";
             } else {
-                // Si el ID es null, se deja que la base de datos asigne el ID automáticamente.
                 $sql = "INSERT INTO cultivos (nombre, tipo, dias_cosecha, ciclo_cultivos) VALUES (?, ?, ?, ?)";
             }
 
-            // @ 2.2. PREPARACIÓN E INSERCIÓN
             if ($stmt = mysqli_prepare($conexion, $sql)) {
 
                 if ($id !== null) {
-                    // Si se proporciona ID: bind 5 parámetros (i: integer, s: string, s: string, i: integer, s: string)
                     mysqli_stmt_bind_param($stmt, "issis", $id, $nombre, $tipo, $dias, $ciclo);
                 } else {
-                    // Si el ID es auto: bind 4 parámetros
                     mysqli_stmt_bind_param($stmt, "ssis", $nombre, $tipo, $dias, $ciclo);
                 }
 
                 if (mysqli_stmt_execute($stmt)) {
                     $exito = true;
-                    // El new_id será el ID proporcionado o el último ID insertado.
                     $new_id = $id ?? mysqli_insert_id($conexion);
                 } else {
-                    // Manejo de error de la inserción principal.
-                    $errno = mysqli_stmt_errno($stmt);
-                    $error_sql = mysqli_stmt_error($stmt);
-
-                    if ($errno === 1062 && $id !== null) {
-                        // ! Fallback: El ID solicitado ya estaba ocupado (código 1062). Intentar insertar sin ID, respetando la lógica original.
+                    // Posible duplicado de ID manual
+                    if (mysqli_stmt_errno($stmt) == 1062 && $id !== null) {
+                        // Fallback: insertar sin ID
                         $sql_fallback = "INSERT INTO cultivos (nombre, tipo, dias_cosecha, ciclo_cultivos) VALUES (?, ?, ?, ?)";
-                        if ($stmt_fallback = mysqli_prepare($conexion, $sql_fallback)) {
-
-                            mysqli_stmt_bind_param($stmt_fallback, "ssis", $nombre, $tipo, $dias, $ciclo);
-
-                            if (mysqli_stmt_execute($stmt_fallback)) {
+                        if ($stmt2 = mysqli_prepare($conexion, $sql_fallback)) {
+                            mysqli_stmt_bind_param($stmt2, "ssis", $nombre, $tipo, $dias, $ciclo);
+                            if (mysqli_stmt_execute($stmt2)) {
                                 $exito = true;
                                 $new_id = mysqli_insert_id($conexion);
-                                // Mensaje de advertencia, ya que el ID original fue ignorado.
-                                $mensaje = "<div class='msg warning'>⚠️ El ID solicitado (" . (int) $id . ") ya estaba ocupado; se ha asignado el ID <strong>" . (int) $new_id . "</strong> al cultivo <strong>" . htmlspecialchars($nombre) . "</strong>. - Ciclo: <strong>" . htmlspecialchars($ciclo) . "</strong></div>";
-                            } else {
-                                // El fallback también falló.
-                                $mensaje = "<div class='msg error'>❌ ERROR SQL: Fallo al intentar auto-asignar ID tras conflicto. " . htmlspecialchars(mysqli_stmt_error($stmt_fallback)) . "</div>";
+                                $mensaje = "<div class='msg warning'>El ID $id ya existía → se asignó automáticamente el ID <strong>$new_id</strong></div>";
                             }
-                            mysqli_stmt_close($stmt_fallback);
-                        } else {
-                            $mensaje = "<div class='msg error'>❌ ERROR SQL (Fallback Prep.): No se pudo preparar la sentencia de fallback.</div>";
+                            mysqli_stmt_close($stmt2);
                         }
-                    } else {
-                        // Otros errores SQL
-                        $mensaje = "<div class='msg error'>❌ ERROR SQL: Fallo al insertar. (Código: $errno): " . htmlspecialchars($error_sql) . "</div>";
                     }
                 }
-
-                // Cierra el statement principal. Si el fallback tuvo éxito, $exito es true.
                 mysqli_stmt_close($stmt);
-            } else {
-                $mensaje = "<div class='msg error'>❌ ERROR SQL (Principal Prep.): No se pudo preparar la sentencia principal. " . htmlspecialchars(mysqli_error($conexion)) . "</div>";
             }
 
-            // Si la operación fue exitosa (principal o fallback) y no se generó un mensaje de advertencia específico.
-            if ($exito && $new_id !== null && empty($mensaje)) {
-                $mensaje = "<div class='msg success'>✅ Cultivo '" . htmlspecialchars($nombre) . "' (Tipo: " . htmlspecialchars($tipo) . ") insertado correctamente! (ID: " . (int) $new_id . ") - Ciclo: <strong>" . htmlspecialchars($ciclo) . "</strong></div>";
+            // Mensaje final de éxito (si no hubo mensaje de fallback)
+            if ($exito && empty($mensaje)) {
+                $mensaje = "<div class='msg success'>Cultivo '<strong>" . htmlspecialchars($nombre) . "</strong>' insertado con ID <strong>$new_id</strong> (Ciclo: <strong>$ciclo</strong>)</div>";
             }
         }
+        mysqli_close($conexion);
     }
-    // Asegura el cierre de la conexión después de terminar.
-    if ($conexion) {
-        mysqli_close($conexion); // Cierra la conexión a la base de datos.
-    }
+
 } else {
-    // Estado inicial si no hay POST (Conectado o Desconectado)
+    // Solo carga de página (sin POST)
     $conexion = conectarBDD();
     if ($conexion) {
         $conexion_status_msg = "<span style='color:#00a878;'>Conectado</span>";
-        // CORRECCIÓN: Se establece el charset para soporte de acentos y UTF-8
         mysqli_set_charset($conexion, "utf8mb4");
         mysqli_close($conexion);
     } else {
-        // Muestra "Desconectado" en rojo al fallar la conexión inicial
         $conexion_status_msg = "<span style='color:#ff6347;'>Desconectado</span>";
-        // Si la conexión fue exitosa, el mensaje se mantiene vacío.
-        $mensaje = "<div class='msg warning'>⚠️ Advertencia: Intento de conexión al cargar la página: DESCONECTADO.</div>";
     }
 }
 ?>
