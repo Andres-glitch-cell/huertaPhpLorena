@@ -3,16 +3,22 @@
    ============================================================ */
 :root {
     --verde1: #9aff4d;
+    /* Verde lima neón brillante – color principal de acento */
     /* Verde lima neón brillante */
     --verde2: #00bfff;
+    /* Azul cielo intenso – usado en degradados y efectos secundarios */
     /* Azul cielo para degradados reactivos */
 }
 
 /* RESET GENERAL: Limpieza de márgenes del navegador */
 * {
+    /* Selecciona absolutamente todos los elementos */
     margin: 0;
+    /* Elimina márgenes por defecto del navegador */
     padding: 0;
+    /* Elimina paddings por defecto */
     box-sizing: border-box;
+    /* Hace que padding y border se incluyan en el ancho/alto */
 }
 
 /* ============================================================
@@ -20,19 +26,29 @@
    ============================================================ */
 body {
     min-height: 100vh;
+    /* Ocupa al menos toda la altura de la pantalla */
     /* Fondo profundo que simula el ambiente nocturno de la huerta */
     background: linear-gradient(135deg, #003314, #005020);
+    /* Degradado diagonal de verde muy oscuro a verde bosque */
     font-family: 'Inter', sans-serif;
+    /* Tipografía limpia y moderna */
     color: #fff;
+    /* Texto blanco por defecto */
     display: flex;
+    /* Flexbox para centrar todo el contenido */
     justify-content: center;
+    /* Centrado horizontal */
     align-items: center;
+    /* Centrado vertical */
 }
 
 .content {
     width: 100%;
+    /* Ocupa todo el ancho disponible */
     max-width: 500px;
+    /* Limita el ancho máximo (ideal para móviles y tablets) */
     padding: 20px;
+    /* Espacio interior en los laterales */
 }
 
 /* ============================================================
@@ -41,23 +57,35 @@ body {
 .card {
     /* Efecto de cristal translúcido mediante desenfoque de fondo */
     background: rgba(255, 255, 255, 0.1);
+    /* Fondo blanco muy transparente */
     backdrop-filter: blur(15px);
+    /* Desenfoque del fondo detrás de la tarjeta → efecto glassmorphism */
     border: 1px solid rgba(255, 255, 255, 0.2);
+    /* Borde sutil blanco translúcido */
     border-radius: 20px;
+    /* Esquinas bien redondeadas */
     padding: 40px;
+    /* Espacio interior grande */
     box-shadow: 0 25px 45px rgba(0, 0, 0, 0.2);
+    /* Sombra suave y profunda para dar flotación */
 }
 
 h1 {
     font-family: 'Playfair Display', serif;
+    /* Tipografía elegante con serifa para títulos */
     font-size: 2.5rem;
+    /* Tamaño grande */
     text-align: center;
     margin-bottom: 30px;
     /* Degradado de texto recortado mediante clip */
     background: linear-gradient(90deg, var(--verde1), #fff);
+    /* Degradado de verde neón a blanco */
     -webkit-background-clip: text;
+    /* Recorta el degradado al texto (Chrome/Safari) */
     background-clip: text;
+    /* Estándar moderno */
     color: transparent;
+    /* Hace el texto transparente para que se vea solo el degradado */
 }
 
 /* ============================================================
@@ -65,13 +93,17 @@ h1 {
    ============================================================ */
 .field {
     margin-bottom: 20px;
+    /* Separación entre campos */
 }
 
 .field label {
     display: block;
+    /* Hace que la etiqueta ocupe toda la línea */
     margin-bottom: 8px;
     font-weight: 600;
+    /* Semi-negrita */
     color: var(--verde1);
+    /* Color verde neón para etiquetas */
 }
 
 .field input,
@@ -80,24 +112,30 @@ h1 {
     padding: 12px;
     /* Los campos heredan la estética de cristal para armonizar el diseño */
     background: rgba(255, 255, 255, 0.05);
+    /* Fondo casi transparente */
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 10px;
     color: #fff;
+    /* Texto blanco dentro del input */
     font-size: 1rem;
     outline: none;
+    /* Quita el contorno por defecto al hacer focus */
     transition: 0.3s;
+    /* Transiciones suaves */
 }
 
 .field input:focus,
 .field select:focus {
     /* Iluminación lima en focus para guiar la atención del usuario */
     border-color: var(--verde1);
+    /* Borde verde neón al hacer focus */
     box-shadow: 0 0 10px var(--verde1);
+    /* Brillo neón alrededor */
 }
 
 .field option {
     background: #003314;
-    /* Fondo oscuro para que el texto sea legible en el select */
+    /* Fondo oscuro en las opciones del <select> para que el texto blanco se lea bien */
 }
 
 /* ============================================================
@@ -107,25 +145,32 @@ h1 {
     width: 100%;
     /* Degradado neón corporativo para resaltar acciones principales */
     background: linear-gradient(135deg, var(--verde1), var(--verde2));
+    /* Verde neón → azul cielo */
     color: #111;
+    /* Texto oscuro para contraste */
     border: none;
     border-radius: 12px;
     padding: 15px;
     font-size: 1.1rem;
     font-weight: 700;
+    /* Negrita fuerte */
     cursor: pointer;
     transition: 0.3s;
     box-shadow: 0 5px 15px rgba(154, 255, 77, 0.3);
+    /* Sombra verde suave */
 }
 
 .button:hover {
     transform: translateY(-3px);
+    /* Se eleva un poco al pasar el ratón */
     /* Elevación física en hover */
     box-shadow: 0 8px 25px var(--verde1);
+    /* Sombra más intensa y verde neón */
 }
 
 .button-secondary {
     background: rgba(255, 255, 255, 0.1);
+    /* Botón secundario más discreto */
     color: #fff;
     border: 1px solid rgba(255, 255, 255, 0.2);
     margin-top: 15px;
@@ -133,6 +178,7 @@ h1 {
 
 .button-secondary:hover {
     background: rgba(255, 255, 255, 0.2);
+    /* Se aclara un poco al hacer hover */
 }
 
 /* ============================================================
@@ -148,18 +194,21 @@ h1 {
 
 .msg.success {
     background: rgba(154, 255, 77, 0.2);
+    /* Fondo verde translúcido */
     border: 1px solid var(--verde1);
     color: var(--verde1);
 }
 
 .msg.error {
     background: rgba(255, 99, 71, 0.2);
+    /* Fondo rojo tomate translúcido */
     border: 1px solid #ff6347;
     color: #ff6347;
 }
 
 .msg.warning {
     background: rgba(255, 140, 66, 0.2);
+    /* Fondo naranja translúcido */
     border: 1px solid #ff8c42;
     color: #ff8c42;
 }
