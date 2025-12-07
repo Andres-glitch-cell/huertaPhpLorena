@@ -1,30 +1,34 @@
 <?php
-// TODO: CAMBIAR METHOD DE LA CONEXIÓN
-// ! COMENTARIOS
-// ? Comentarios 2
-
+/**
+ * CONEXIÓN MEDIANTE parse_ini_file (LA FORMA CORTA Y NATIVA)
+ */
 function conectarBDD()
 {
-    // ! CREDENCIALES DE CONEXIÓN SIMPLES **
-    // Se obtienen las variables de entorno cargadas previamente.
-    $host = getenv('DB_HOST');
-    $user = getenv('DB_USERNAME');
-    $pass = getenv('DB_PASSWORD');
-    $db_name = getenv('DB_NAME');
+    // 1. Leemos el archivo .env y lo convertimos en un array ($config)
+    // El '../' es porque conexion.php está en /config y el .env en la raíz
+    $config = parse_ini_file(__DIR__ . '/../.env');
 
-    // Muestra un error si falta el nombre de la BDD (para depuración)
-    if (empty($db_name)) {
-        error_log("Fallo de conexión a MySQL: DB_NAME no está definido en el archivo .env.");
+    if (!$config) {
+        error_log("Error: No se pudo leer el archivo .env");
         return null;
     }
 
-    $conexion = mysqli_connect($host, $user, $pass, $db_name);
+    // 2. Conectamos usando las claves del array
+    $conexion = mysqli_connect(
+        $config['DB_HOST'],
+        $config['DB_USERNAME'],
+        $config['DB_PASSWORD'],
+        $config['DB_NAME']
+    );
 
     if (!$conexion) {
-        // Registra el error internamente y retorna nulo.
         error_log("Fallo de conexión a MySQL: " . mysqli_connect_error());
         return null;
     }
+
+    // Configuración de caracteres
+    mysqli_set_charset($conexion, "utf8mb4");
+
     return $conexion;
 }
 ?>

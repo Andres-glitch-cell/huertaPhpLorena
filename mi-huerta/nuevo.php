@@ -1,15 +1,25 @@
 <?php
-// Configuración de errores (ini_set)
+/**
+ * CONFIGURACIÓN DE ERRORES (FASE 4)
+ */
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-// Verificación de existencia del archivo de conexión
-if (!file_exists("conexion.php")) {
-    die("Error crítico: El archivo 'conexion.php' no existe en este directorio.");
-}
-require_once "conexion.php";
+/**
+ * CONTROL DE RUTAS: 
+ * Según tu 'tree', conexion.php está en 'config/conexion.php'
+ */
+$ruta_conexion = "config/conexion.php";
 
+if (!file_exists($ruta_conexion)) {
+    die("<div style='color:red; font-family:sans-serif;'>Error crítico: No se encuentra '{$ruta_conexion}'. Verifica la ubicación.</div>");
+}
+require_once $ruta_conexion;
+
+/**
+ * LÓGICA DE NEGOCIO (FASE 3)
+ */
 function cicloCultivo(int $dias): string
 {
     if ($dias < 20)
@@ -19,34 +29,36 @@ function cicloCultivo(int $dias): string
     return "Tardío";
 }
 
+// Inicialización de variables de estado
 $conexion_status_msg = "<span style='color:#ff6347;'>Desconectado</span>";
 $mensaje = "";
 
+/**
+ * PROCESAMIENTO (FASE 2: Sentencias Preparadas)
+ */
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $conexion = conectarBDD();
 
     if (!$conexion) {
-        $mensaje = "<div class='msg error'>Error de conexión a la base de datos.</div>";
+        $mensaje = "<div class='msg error'>Error: No hay conexión con la base de datos.</div>";
     } else {
         mysqli_set_charset($conexion, "utf8mb4");
-        $conexion_status_msg = "<span style='color:#00a878;'>Conectado</span>";
+        $conexion_status_msg = "<span style='color:#9aff4d;'>Conectado</span>";
 
-        // Sanitización de inputs
+        // ✅ Sanitización estricta (FASE 5)
         $id = filter_input(INPUT_POST, 'id', FILTER_VALIDATE_INT) ?: null;
-        $nombre = trim(filter_input(INPUT_POST, 'nombre', FILTER_SANITIZE_SPECIAL_CHARS));
-        $tipo = trim(filter_input(INPUT_POST, 'tipo', FILTER_SANITIZE_SPECIAL_CHARS));
+        $nombre = htmlspecialchars(trim($_POST['nombre'] ?? ''), ENT_QUOTES, 'UTF-8');
+        $tipo = trim($_POST['tipo'] ?? '');
         $dias = filter_input(INPUT_POST, 'dias', FILTER_VALIDATE_INT) ?: 0;
         $ciclo = cicloCultivo($dias);
 
         if (empty($nombre) || empty($tipo) || $dias <= 0) {
-            $mensaje = "<div class='msg error'>Por favor, completa los campos correctamente.</div>";
+            $mensaje = "<div class='msg error'>Por favor, rellena los campos correctamente.</div>";
         } else {
-            // SENTENCIAS PREPARADAS (Prepared Statements)
-            if ($id !== null) {
-                $sql = "INSERT INTO cultivos (id, nombre, tipo, dias_cosecha, ciclo_cultivos) VALUES (?, ?, ?, ?, ?)";
-            } else {
-                $sql = "INSERT INTO cultivos (nombre, tipo, dias_cosecha, ciclo_cultivos) VALUES (?, ?, ?, ?)";
-            }
+            // ✅ Uso de prepared statements para blindar contra Inyección SQL
+            $sql = ($id !== null)
+                ? "INSERT INTO cultivos (id, nombre, tipo, dias_cosecha, ciclo_cultivos) VALUES (?, ?, ?, ?, ?)"
+                : "INSERT INTO cultivos (nombre, tipo, dias_cosecha, ciclo_cultivos) VALUES (?, ?, ?, ?)";
 
             $stmt = mysqli_prepare($conexion, $sql);
 
@@ -61,16 +73,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $new_id = $id ?? mysqli_insert_id($conexion);
                     $mensaje = "<div class='msg success'>Cultivo '<strong>$nombre</strong>' guardado (ID: $new_id)</div>";
                 } else {
-                    // Manejo de error de duplicado
                     if (mysqli_stmt_errno($stmt) == 1062) {
-                        $mensaje = "<div class='msg warning'>El ID $id ya existe. Use otro o déjelo vacío.</div>";
+                        $mensaje = "<div class='msg warning'>El ID $id ya existe. Prueba con otro.</div>";
                     } else {
-                        $mensaje = "<div class='msg error'>Error SQL: " . mysqli_stmt_error($stmt) . "</div>";
+                        error_log("Error SQL: " . mysqli_stmt_error($stmt));
+                        $mensaje = "<div class='msg error'>Error interno del servidor.</div>";
                     }
                 }
                 mysqli_stmt_close($stmt);
             }
         }
+        mysqli_close($conexion);
+    }
+} else {
+    $conexion = conectarBDD();
+    if ($conexion) {
+        $conexion_status_msg = "<span style='color:#9aff4d;'>Conectado</span>";
         mysqli_close($conexion);
     }
 }
@@ -82,167 +100,57 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Formulario de Inserción de Cultivos</title>
+    <title>Nuevo Cultivo - Mi Huerta</title>
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700&family=Playfair+Display:wght@700&display=swap"
         rel="stylesheet">
-
     <style>
-        /* COLORES DE HUERTA ORGÁNICA VIBRANTE */
         :root {
-            --verde-esmeralda: #00a878;
-            /* Verde saturado y profundo */
-            --naranja-tierra: #ff8c42;
-            /* Naranja rojizo para acentos (frutos) */
-            --verde-lima: #9aff4d;
-            /* Para el brillo */
-            --fondo-terracota: #f5f0e6;
-            /* Fondo de la tarjeta (Terracota/Crema de Jardín) */
-            --color-texto-oscuro: #1a1a1a;
-            /* Degradado huerta para el botón */
-            --degradado-huerta: linear-gradient(90deg, var(--verde-esmeralda), var(--naranja-tierra));
+            --verde1: #9aff4d;
+            --verde2: #00bfff;
         }
 
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Inter', sans-serif;
         }
 
         body {
             min-height: 100vh;
-            /* Fondo que simula tierra fértil y verde bosque */
-            background: linear-gradient(135deg, #2b1f00, #003314);
+            background: linear-gradient(135deg, #003314, #005020);
+            font-family: 'Inter', sans-serif;
             color: #fff;
-            overflow-x: hidden;
-            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
         .content {
-            position: relative;
-            z-index: 10;
-            padding: 40px 20px;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            width: 100%;
+            max-width: 500px;
+            padding: 20px;
         }
 
-        /* MENSAJES DE ESTADO (Éxito, Error, Advertencia) */
-        .msg {
-            padding: 15px 25px;
-            margin: 20px 0;
-            border-radius: 10px;
-            font-weight: 700;
-            font-size: 1.1em;
+        /* ESTILO CRISTAL PARA EL FORMULARIO */
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.2);
+        }
+
+        h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5rem;
             text-align: center;
-            border: 2px solid;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-            max-width: 600px;
-            width: 90%;
-            color: var(--color-texto-oscuro);
-        }
-
-        .msg.success {
-            background-color: var(--verde-lima);
-            border-color: var(--verde-esmeralda);
-            color: #004d35;
-        }
-
-        .msg.error {
-            background-color: #ff6347;
-            /* Rojo Tomate */
-            border-color: #cc0000;
-            color: white;
-        }
-
-        .msg.warning {
-            background-color: var(--naranja-tierra);
-            border-color: #e65c00;
-            color: #582900;
-        }
-
-        /* TITULO PRINCIPAL */
-        .tituloGestionCultivos {
-            font-family: "Playfair Display", serif;
-            font-size: 68px;
-            font-weight: 900;
-            text-align: center;
-            margin: 40px 0 60px;
-            /* Degradado verde-amarillo que simula luz solar */
-            background: linear-gradient(90deg, var(--verde-lima), #fff, var(--naranja-tierra));
+            margin-bottom: 30px;
+            background: linear-gradient(90deg, var(--verde1), #fff);
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
-            /* Sombra cálida y brillante */
-            text-shadow: 0 4px 30px rgba(255, 140, 66, 0.8);
-            align-items: center;
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-        }
-
-        .tituloGestionCultivos::before {
-            content: "";
-            width: 100px;
-            height: 100px;
-            background: url("handGreenPlant.png") center/contain no-repeat;
-            flex-shrink: 0;
-            margin-right: -15px;
-            /* Ajuste visual */
-        }
-
-        .tituloGestionCultivos::after {
-            content: "";
-            width: 100px;
-            height: 100px;
-            background: url("handGreenPlant.png") center/contain no-repeat;
-            flex-shrink: 0;
-            transform: scaleX(-1);
-            /* Reflejar el icono */
-            margin-left: -15px;
-            /* Ajuste visual */
-        }
-
-
-        /* NUEVA TARJETA DE FORMULARIO - EFECTO CAJA DE JARDÍN */
-        .card {
-            width: 100%;
-            max-width: 450px;
-            padding: 30px;
-            background-color: var(--fondo-terracota);
-            border-radius: 20px;
-            /* Borde que simula madera o maceta oscura */
-            border: 5px solid #4a2c0f;
-            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.6);
-            color: var(--color-texto-oscuro);
-            /* Centrado absoluto */
-            position: absolute;
-            top: 50%;
-            /* Centrado vertical */
-            left: 50%;
-            /* Centrado horizontal */
-            transform: translate(-50%, -50%);
-            /* Ajuste de centrado */
-        }
-
-        .card h1 {
-            font-size: 2.2em;
-            margin-bottom: 25px;
-            color: #004d35;
-            /* Verde profundo */
-            border-bottom: 3px solid var(--naranja-tierra);
-            padding-bottom: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: baseline;
-        }
-
-        .card h1 small {
-            font-size: 0.4em;
-            font-weight: normal;
-            margin-left: 10px;
         }
 
         .field {
@@ -251,144 +159,113 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         .field label {
             display: block;
-            font-weight: 600;
             margin-bottom: 8px;
-            color: var(--color-texto-oscuro);
+            font-weight: 600;
+            color: var(--verde1);
         }
 
+        /* INPUTS ESTILO GLASS */
         .field input,
         .field select {
             width: 100%;
             padding: 12px;
-            border: 2px solid #ccc;
-            border-radius: 8px;
-            font-size: 1em;
-            transition: border-color 0.3s, box-shadow 0.3s;
-            background-color: white;
-            color: #333;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            color: #fff;
+            font-size: 1rem;
+            outline: none;
+            transition: 0.3s;
         }
 
         .field input:focus,
         .field select:focus {
-            border-color: var(--verde-esmeralda);
-            box-shadow: 0 0 10px rgba(0, 168, 120, 0.4);
-            outline: none;
+            border-color: var(--verde1);
+            box-shadow: 0 0 10px var(--verde1);
         }
 
-        /* --- ESTILOS DEL NUEVO BOTÓN CON GRADIENTE Y NEON (Adaptados) --- */
-        /* El contenedor exterior asegura el ancho completo y el borde degradado */
-        .container {
-            position: relative;
-            padding: 3px;
-            background: var(--degradado-huerta);
-            /* Usa el degradado verde/naranja */
-            border-radius: 0.9em;
-            transition: all 0.4s ease;
+        .field option {
+            background: #003314;
+            /* Fondo para que se vea el texto en el select */
+        }
+
+        /* BOTONES NEÓN */
+        .button {
             width: 100%;
-            margin-top: 25px;
-            /* Añadido un pequeño margen superior */
-        }
-
-        /* El botón real que se pulsa */
-        .container .button {
-            color: white;
-            font-size: 1.1em;
-            padding: 15px 25px;
-            border-radius: 0.6em;
+            background: linear-gradient(135deg, var(--verde1), var(--verde2));
+            color: #111;
             border: none;
-            background-color: #000000dd;
-            /* Fondo claro de la tarjeta */
-            cursor: pointer;
-            box-shadow: none;
-            width: 100%;
+            border-radius: 12px;
+            padding: 15px;
+            font-size: 1.1rem;
             font-weight: 700;
-            transition: all 0.4s ease;
-            text-transform: uppercase;
-            /* Para que se vea más como botón de acción */
+            cursor: pointer;
+            transition: 0.3s;
+            box-shadow: 0 5px 15px rgba(154, 255, 77, 0.3);
         }
 
-        /* El pseudo-elemento que crea el efecto de brillo */
-        .container::before {
-            content: "";
-            position: absolute;
-            inset: 0;
-            margin: auto;
-            border-radius: 0.9em;
-            z-index: -10;
-            filter: blur(0);
-            transition: filter 0.4s ease;
-            background: var(--degradado-huerta);
+        .button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px var(--verde1);
         }
 
-        /* Efecto NEON al pasar el ratón */
-        .container:hover::before {
-            background: var(--degradado-huerta);
-            filter: blur(1.2em);
-            opacity: 0.8;
+        .button-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            margin-top: 15px;
         }
 
-        /* Efecto de PRESIONAR */
-        .container:active::before {
-            filter: blur(0.2em);
+        .button-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
         }
 
-        .container:active .button {
-            background-color: #000000ff;
-            /* Se aclara al presionar */
-            color: var(--verde-esmeralda);
+        /* MENSAJES DE ESTADO */
+        .msg {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 600;
         }
 
-        /* MEDIA QUERIES (Ajustes para móviles) */
-        @media (max-width: 768px) {
-            .tituloGestionCultivos {
-                font-size: 48px;
-            }
+        .msg.success {
+            background: rgba(154, 255, 77, 0.2);
+            border: 1px solid var(--verde1);
+            color: var(--verde1);
+        }
 
-            .tituloGestionCultivos::before,
-            .tituloGestionCultivos::after {
-                width: 70px;
-                height: 70px;
-            }
+        .msg.error {
+            background: rgba(255, 99, 71, 0.2);
+            border: 1px solid #ff6347;
+            color: #ff6347;
+        }
 
-            .card {
-                margin-top: 20px;
-                padding: 20px;
-                /* Revertimos el centrado absoluto en móvil para mejor scroll */
-                position: relative;
-                top: auto;
-                left: auto;
-                transform: none;
-            }
-
-            .msg {
-                font-size: 1em;
-            }
+        .msg.warning {
+            background: rgba(255, 140, 66, 0.2);
+            border: 1px solid #ff8c42;
+            color: #ff8c42;
         }
     </style>
 </head>
 
 <body>
     <div class="content">
-        <!-- Mensaje de éxito/error/warning (si existe) -->
         <?php echo $mensaje; ?>
         <div class="card">
-            <h1>
-                Insertar Cultivo
-                <small><?php echo $conexion_status_msg; ?></small>
-                <!-- Aquí se muestra 'Conectado' (verde) o 'Desconectado' (rojo) -->
-            </h1>
-            <form method="post" action="">
+            <h1>Insertar Cultivo</h1>
+            <form method="post">
                 <div class="field">
-                    <label for="id">ID (opcional):</label>
-                    <input type="number" name="id" id="id" placeholder="ID (opcional)" min="1">
+                    <label>ID (opcional):</label>
+                    <input type="number" name="id" min="1" placeholder="Ej: 101">
                 </div>
                 <div class="field">
-                    <label for="nombre">Nombre del cultivo:</label>
-                    <input type="text" name="nombre" id="nombre" placeholder="Nombre del cultivo" required>
+                    <label>Nombre del Cultivo:</label>
+                    <input type="text" name="nombre" required placeholder="Ej: Tomate Cherry">
                 </div>
                 <div class="field">
-                    <label for="tipo">Tipo de cultivo:</label>
-                    <select name="tipo" id="tipo" required>
+                    <label>Tipo:</label>
+                    <select name="tipo" required>
                         <option value="" disabled selected>Selecciona un tipo</option>
                         <option value="Hortaliza">Hortaliza</option>
                         <option value="Fruto">Fruto</option>
@@ -398,25 +275,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </select>
                 </div>
                 <div class="field">
-                    <label for="dias">Días hasta cosecha:</label>
-                    <input type="number" name="dias" id="dias" placeholder="Días hasta cosecha" min="1" required>
+                    <label>Días para Cosecha:</label>
+                    <input type="number" name="dias" min="1" required placeholder="Ej: 60">
                 </div>
 
-                <!-- Botón de inserción con estilo -->
-                <div class="container">
-                    <button class="button" type="submit" name="insertarValoresSQL">Insertar Cultivo</button>
-
-                    <script>
-                        function volverAlInicio() {
-                            window.location.href = 'index.php'; // Redirige a la página de inicio
-                        }
-                    </script>
-                </div>
-                <br>
-                <div class="container">
-                    <button onclick="volverAlInicio()" class="button" type="button">Volver al Inicio</button>
-                </div>
+                <button class="button" type="submit">Guardar Cultivo</button>
+                <button type="button" class="button button-secondary" onclick="location.href='index.php'">Volver al
+                    Inicio</button>
             </form>
+            <p style="text-align: center; margin-top: 20px; font-size: 0.8rem; opacity: 0.6;">
+                Estado BD: <?php echo $conexion_status_msg; ?>
+            </p>
         </div>
     </div>
 </body>
