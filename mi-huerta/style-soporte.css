@@ -1,93 +1,140 @@
    :root {
        --gh-bg: #0d1117;
+       /* Fondo principal – negro azulado típico de GitHub Dark */
        --gh-card: #161b22;
+       /* Color de las tarjetas y paneles en GitHub Dark */
        --gh-border: #30363d;
+       /* Color de bordes sutiles en la interfaz de GitHub */
        --gh-text: #c9d1d9;
+       /* Color del texto principal en modo oscuro de GitHub */
        --gh-blue: #58a6ff;
+       /* Azul característico de enlaces y acentos en GitHub */
        --verde-neon: #9aff4d;
+       /* Tu toque personal: verde lima neón brillante */
    }
 
+   /* Fondo y estructura general de la página – estilo GitHub Dark puro */
    body {
        background-color: var(--gh-bg);
+       /* Fondo negro profundo */
        color: var(--gh-text);
+       /* Texto gris claro legible */
        font-family: 'Inter', sans-serif;
+       /* Tipografía oficial de GitHub */
        margin: 0;
        display: flex;
        justify-content: center;
+       /* Centra horizontalmente */
        align-items: center;
+       /* Centra verticalmente */
        min-height: 100vh;
+       /* Ocupa toda la pantalla incluso si el contenido es corto */
    }
 
+   /* Tarjeta principal – imita el estilo de las cards de GitHub */
    .gh-card {
        background-color: var(--gh-card);
+       /* Fondo ligeramente más claro que el body */
        border: 1px solid var(--gh-border);
+       /* Borde muy sutil */
        border-radius: 12px;
+       /* Bordes redondeados como en GitHub */
        padding: 40px;
+       /* Espacio interior generoso */
        max-width: 500px;
+       /* Ancho máximo cómodo */
        width: 90%;
+       /* En móviles ocupa casi todo el ancho */
        text-align: center;
+       /* Todo centrado */
        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+       /* Sombra fuerte para dar profundidad y efecto "flotante" */
    }
 
-   /* AJUSTE PARA MOSTRAR IMAGEN EN EL AVATAR */
+   /* ============================================================
+   AVATAR CIRCULAR CON BORDE NEÓN
+   ============================================================ */
    .avatar {
        width: 120px;
+       /* Tamaño del avatar */
        height: 120px;
        border-radius: 30%;
+       /* Casi círculo, pero con un toque cuadrado (estética moderna) */
        border: 3px solid var(--verde-neon);
+       /* Borde grueso verde neón – el detalle que más destaca */
        margin-bottom: 10px;
        display: inline-block;
        background-image: url('<?php echo $avatar_url; ?>');
+       /* Imagen dinámica desde PHP */
        background-size: cover;
+       /* Cubre todo el contenedor */
        background-position: center;
+       /* Centra la foto si no es cuadrada */
        margin-left: 10px;
+       /* Pequeño ajuste horizontal (quizá para compensar algo del layout) */
        box-shadow: 0 0 15px rgba(154, 255, 77, 0.2);
+       /* Brillo suave verde alrededor del avatar */
    }
 
    h1 {
        font-size: 1.8rem;
+       /* Nombre de usuario o título */
        margin: 10px 0;
        color: #fff;
+       /* Blanco puro para máximo contraste */
    }
 
    .handle {
        color: var(--gh-blue);
+       /* Azul típico de GitHub para @username */
        font-size: 1.1rem;
        text-decoration: none;
+       /* Quita el subrayado */
        display: block;
        margin-bottom: 20px;
    }
 
    .quote {
        border-left: 4px solid var(--verde-neon);
+       /* Línea lateral verde neón – toque de personalidad */
        background: rgba(154, 255, 77, 0.05);
+       /* Fondo muy tenue verde para resaltar la cita */
        padding: 15px;
        font-style: italic;
        border-radius: 4px;
        margin: 20px 0;
+       /* Separación arriba y abajo */
    }
 
+   /* Botón estilo "GitHub green" pero un poco más moderno */
    .btn-github {
        background-color: #238636;
+       /* Verde oficial de botones primarios de GitHub */
        color: white;
        padding: 12px 24px;
        border-radius: 6px;
+       /* Bordes redondeados como los nuevos botones de GitHub */
        text-decoration: none;
        font-weight: 600;
        display: inline-block;
        transition: 0.2s;
+       /* Transición rápida */
    }
 
    .btn-github:hover {
        background-color: #2ea043;
+       /* Verde más claro al pasar el ratón */
        transform: scale(1.05);
+       /* Efecto de crecimiento sutil – muy usado hoy en día */
    }
 
+   /* Enlace del footer (por ejemplo: "Hecho con amor por..." o link a repo) */
    .footer-link {
        margin-top: 30px;
        display: block;
        color: var(--gh-text);
        opacity: 0.7;
+       /* Texto atenuado para que no robe protagonismo */
        font-size: 0.9rem;
        text-decoration: none;
    }
