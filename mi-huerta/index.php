@@ -8,9 +8,7 @@ error_reporting(E_ALL);
 
 // Carga segura de conexión
 require_once "config/conexion.php";
-
 $tabla_html = "";
-
 /**
  * Listar cultivos al pulsar el botón
  */
