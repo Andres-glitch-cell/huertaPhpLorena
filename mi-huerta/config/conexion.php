@@ -1,10 +1,19 @@
+// * Comentario estándar/resaltado (Verde)
+// ! Advertencia o nota crítica (Rojo intenso, Negrita)
+// ? Pregunta o duda sobre el código (Azul, Cursiva)
+// TODO: Tarea pendiente o algo por completar (Naranja/Ámbar, Negrita, Subrayado)
+// // Comentario obsoleto o tachado (Gris oscuro, Tachado)
+// & Nota de seguimiento o especial (Morado)
+
+// --- Nuevos Comentarios ---
+// @ ¡IMPORTANTE! Revisar o acción crucial (Amarillo, Fondo Semitransparente, Negrita)
+// # Referencia a un ticket, enlace o doc. (Gris claro, Fondo Sólido Oscuro)
+// + Código recién añadido o nueva funcionalidad (Verde claro, Negrita, Cursiva)
+
 <?php
-/**
- * CONEXIÓN MEDIANTE parse_ini_file (LA FORMA CORTA Y NATIVA)
- */
 function conectarBDD()
 {
-    // 1. Leemos el archivo .env y lo convertimos en un array ($config)
+    // ! 1. Leemos el archivo .env y lo convertimos en un array ($config)
     // El '../' es porque conexion.php está en /config y el .env en la raíz
     $config = parse_ini_file(__DIR__ . '/../.env');
 
@@ -13,7 +22,7 @@ function conectarBDD()
         return null;
     }
 
-    // 2. Conectamos usando las claves del array
+    // ! 2. Conectamos usando las claves del array
     $conexion = mysqli_connect(
         $config['DB_HOST'],
         $config['DB_USERNAME'],
@@ -26,7 +35,7 @@ function conectarBDD()
         return null;
     }
 
-    // Configuración de caracteres
+    // ! 3. Configuración de caracteres
     mysqli_set_charset($conexion, "utf8mb4");
 
     return $conexion;

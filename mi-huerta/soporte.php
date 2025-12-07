@@ -1,14 +1,10 @@
 <?php
-/**
- * FASE 4: Manejo seguro de errores[cite: 72, 73].
- * Desactivamos la visualización de errores técnicos al usuario.
- */
 ini_set('display_errors', 0);
 error_reporting(E_ALL);
 
 /**
- * FASE 5: Sanitización de salida.
- * Definimos los datos del creador escapándolos para evitar XSS[cite: 146].
+ * & FASE 5: Sanitización de salida.
+ * ! Evitamos vulnerabilidades XSS al mostrar datos en HTML.
  */
 $nombre_creador = htmlspecialchars("Andrés", ENT_QUOTES, 'UTF-8');
 $github_url = "https://github.com/Andres-glitch-cell";
