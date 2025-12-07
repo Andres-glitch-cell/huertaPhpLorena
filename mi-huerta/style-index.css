@@ -1,0 +1,302 @@
+        /* ============================================================
+   VARIABLES GLOBALES (FASE 1: Centralización de Estilos)
+   ============================================================ */
+        :root {
+            --verde1: #9aff4d;
+            /* Color primario: Lima neón brillante */
+            --verde2: #00bfff;
+            /* Color secundario: Azul cielo brillante */
+            --transparencia-glass: rgba(255, 255, 255, 0.1);
+        }
+
+        /* RESET GENERAL: Asegura un comportamiento consistente en todos los navegadores */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            /* El padding no altera el tamaño total del elemento */
+        }
+
+        /* ============================================================
+   ESTRUCTURA BASE DEL CUERPO
+   ============================================================ */
+        body {
+            min-height: 100vh;
+            /* Fondo con degradado profundo que simula tierra fértil y jardín nocturno */
+            background: linear-gradient(135deg, #003314, #005020);
+            font-family: 'Inter', sans-serif;
+            color: #fff;
+            overflow-x: hidden;
+            /* Evita desplazamientos horizontales no deseados */
+            position: relative;
+        }
+
+        .content {
+            position: relative;
+            z-index: 10;
+            /* Capa superior para evitar solapamientos con el fondo */
+            padding: 40px 20px;
+            min-height: 100vh;
+        }
+
+        /* ============================================================
+   MENSAJES DE ESTADO (Notificaciones flotantes)
+   ============================================================ */
+        .mensajeExito {
+            position: fixed;
+            /* Siempre visible en la parte superior */
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 3.2rem;
+            font-weight: 800;
+            /* Efecto de degradado recortado al texto */
+            background: linear-gradient(90deg, #d4ff00, #4dff9a);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 25px rgba(212, 255, 0, 0.8);
+            /* Brillo neón externo */
+            z-index: 9999;
+            pointer-events: none;
+            /* No interfiere con los clics debajo del mensaje */
+            opacity: 0;
+            /* Oculto por defecto para control mediante JS */
+            transition: opacity 1s;
+        }
+
+        /* ============================================================
+   TÍTULOS Y CABECERAS
+   ============================================================ */
+        .tituloGestionCultivos {
+            font-family: "Playfair Display", serif;
+            font-size: 68px;
+            font-weight: 900;
+            text-align: center;
+            margin: 40px 0 60px;
+            /* Degradado lima profesional */
+            background: linear-gradient(90deg, #9aff4d, #ccff80, #9aff4d);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
+            text-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+            /* Sombra elegante para legibilidad */
+        }
+
+        /* ============================================================
+   BOTONES Y ACCIONES
+   ============================================================ */
+        .bloqueBotones {
+            text-align: center;
+            margin-bottom: 80px;
+        }
+
+        .button {
+            /* Uso de degradado neón dinámico */
+            background: linear-gradient(135deg, var(--verde1), var(--verde2));
+            color: #111;
+            /* Contraste oscuro sobre fondo claro */
+            border: none;
+            border-radius: 16px;
+            padding: 18px 40px;
+            margin: 12px;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 12px 30px rgba(0, 191, 255, 0.5);
+            /* Sombra proyectada azul */
+            transition: all .3s ease;
+            /* Suaviza la elevación del botón */
+        }
+
+        .button:hover {
+            transform: translateY(-8px);
+            /* Efecto de elevación física */
+            box-shadow: 0 25px 45px rgba(154, 255, 77, 0.8);
+            /* Aumenta el resplandor lima */
+        }
+
+        /* ============================================================
+   EFECTOS DE CRISTAL (Glassmorphism)
+   ============================================================ */
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 80px 0;
+        }
+
+        .container .glass {
+            position: relative;
+            width: 180px;
+            height: 200px;
+            /* Reflejo superior suave */
+            background: linear-gradient(rgba(255, 255, 255, 0.2), transparent);
+            border: 1px solid rgba(255, 255, 255, .1);
+            box-shadow: 0 25px 25px rgba(0, 0, 0, .25);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: .5s;
+            border-radius: 10px;
+            margin: 0 -45px;
+            /* Superposición lateral de las tarjetas */
+            backdrop-filter: blur(10px);
+            /* Desenfoque de fondo tipo cristal */
+            transform: rotate(calc(var(--r)*1deg));
+            /* Rotación dinámica vía inline CSS */
+            cursor: pointer;
+        }
+
+        .container .glass:hover {
+            transform: rotate(0) translateY(-10px);
+            /* Se endereza y sube */
+            margin: 0 20px;
+            /* Se separa de las otras tarjetas */
+            background: rgba(255, 255, 255, .2);
+            box-shadow: 0 0 25px var(--verde1), 0 10px 30px rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--verde1);
+        }
+
+        /* Brillo reactivo para los iconos SVG dentro del cristal */
+        .container .glass:hover svg {
+            fill: var(--verde1);
+            transform: scale(1.2);
+            filter: drop-shadow(0 0 8px var(--verde1));
+        }
+
+        /* Etiqueta de texto inferior en las tarjetas glass */
+        .container .glass::before {
+            content: attr(data-text);
+            /* Toma el texto del atributo data-text de HTML */
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 40px;
+            background: rgba(255, 255, 255, .05);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .container .glass svg {
+            font-size: 2.5em;
+            fill: #fff;
+        }
+
+        /* ============================================================
+   RELOJ DIGITAL (Panel informativo fijo)
+   ============================================================ */
+        .card {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 280px;
+            height: 150px;
+            background: rgba(0, 51, 20, .6);
+            border: 1px solid rgba(154, 255, 77, .3);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, .3), 0 0 20px rgba(154, 255, 77, .4);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            color: white;
+            z-index: 9999;
+            transition: all .3s;
+        }
+
+        .card:hover {
+            box-shadow: 0 8px 32px rgba(0, 0, 0, .5), 0 0 30px rgba(154, 255, 77, .6);
+        }
+
+        .time-text {
+            font-size: 50px;
+            margin-left: 15px;
+            font-weight: 600;
+        }
+
+        .day-text {
+            font-size: 18px;
+            margin-left: 15px;
+            opacity: .8;
+        }
+
+        .moon {
+            position: absolute;
+            right: 15px;
+            top: 15px;
+            color: var(--verde1);
+            font-size: 20px;
+        }
+
+        /* ============================================================
+   ESTILO DE TABLAS (Listado profesional de cultivos)
+   ============================================================ */
+        .table-container {
+            width: 90%;
+            max-width: 1100px;
+            margin: 60px auto;
+            border-radius: 20px;
+            overflow: hidden;
+            /* Corta bordes de la tabla para que encajen en el radio */
+            box-shadow: 0 20px 60px rgba(0, 0, 0, .5);
+            border: 1px solid rgba(154, 255, 77, .5);
+            background: rgba(255, 255, 255, .97);
+            /* Casi sólido para mejorar contraste de lectura */
+            backdrop-filter: blur(10px);
+        }
+
+        .styled-table {
+            width: 100%;
+            border-collapse: collapse;
+            color: #111;
+        }
+
+        .styled-table thead {
+            /* Degradado oscuro para el encabezado */
+            background: linear-gradient(135deg, #005c26, #003314);
+            color: white;
+        }
+
+        .styled-table th,
+        .styled-table td {
+            padding: 20px;
+            text-align: left;
+        }
+
+        .styled-table tbody tr:hover {
+            background: rgba(154, 255, 77, .35);
+            /* Resaltado lima suave al pasar el ratón */
+        }
+
+        /* ============================================================
+   DISEÑO RESPONSIVO (Ajustes para dispositivos móviles)
+   ============================================================ */
+        @media (max-width: 768px) {
+            .tituloGestionCultivos {
+                font-size: 48px;
+                /* Título más pequeño */
+            }
+
+            .button {
+                display: block;
+                width: 90%;
+                margin: 15px auto;
+                /* Botones apilados verticalmente */
+            }
+
+            .card {
+                width: 240px;
+                height: 130px;
+                top: 10px;
+                right: 10px;
+            }
+
+            .time-text {
+                font-size: 40px;
+            }
+        }

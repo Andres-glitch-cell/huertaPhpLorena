@@ -1,50 +1,89 @@
 <?php
+
+// TODO: COMENTARIOS IMPORTANTES !!
+// * Comentario estándar/resaltado (Verde)
+// ! Advertencia o nota crítica (Rojo intenso, Negrita)
+// ? Pregunta o duda sobre el código (Azul, Cursiva)
+// TODO: Tarea pendiente o algo por completar (Naranja/Ámbar, Negrita, Subrayado)
+// // Comentario obsoleto o tachado (Gris oscuro, Tachado)
+// & Nota de seguimiento o especial (Morado)
+
+// --- Nuevos Comentarios ---
+// @ ¡IMPORTANTE! Revisar o acción crucial (Amarillo, Fondo Semitransparente, Negrita)
+// # Referencia a un ticket, enlace o doc. (Gris claro, Fondo Sólido Oscuro)
+// + Código recién añadido o nueva funcionalidad (Verde claro, Negrita, Cursiva)
+
+
 /**
- * FASE 4: Manejo seguro de errores.
- * Se desactivan errores en pantalla para no revelar rutas técnicas.
+ * TODO: FASE 4: Manejo seguro de errores.
+ * ! Se desactivan errores en pantalla para no revelar rutas técnicas.
  */
 ini_set('display_errors', 0);
 error_reporting(E_ALL);
 
-// Carga segura de conexión
+// & Carga una vez el archivo conexion.php
 require_once "config/conexion.php";
 $tabla_html = "";
 /**
- * Listar cultivos al pulsar el botón
+ * # Listar cultivos al pulsar el botón
  */
 if (isset($_POST['listarSentenciaSQL'])) {
     $conexion = conectarBDD();
 
+    // & Si existe error por la BBDD
     if (!$conexion) {
         $tabla_html = '<p style="text-align:center;color:#ff6347;font-weight:bold;">Servicio no disponible temporalmente.</p>';
     } else {
+        // * El mysqli_set_charset asegura la codificación UTF-8
         mysqli_set_charset($conexion, "utf8mb4");
 
+        // ! CAMBIOS ! 
+        // & Consultas hechas con
+        // TODO:: SENTENCIAS PREPARED
         $sql = "SELECT id, nombre, tipo, dias_cosecha FROM cultivos";
         $stmt = mysqli_prepare($conexion, $sql);
 
+        // * Si la consulta no esta vacia || hay algo ejecuta
         if ($stmt) {
             mysqli_stmt_execute($stmt);
+
+            // ? Obtiene el resultado de la sentencia PREPARED STATEMENT
             $resultado = mysqli_stmt_get_result($stmt);
 
+            // ! Construcción segura de la tabla HTML con sanitización
             if (mysqli_num_rows($resultado) > 0) {
                 $tabla_html .= '<div class="table-container"><table class="styled-table">';
                 $tabla_html .= '<thead><tr><th>ID</th><th>Nombre</th><th>Tipo</th><th>Días hasta cosecha</th></tr></thead><tbody>';
 
+                // !
                 while ($fila = mysqli_fetch_assoc($resultado)) {
                     $tabla_html .= "<tr>";
+
+                    // TODO: EXPLICACION SOBRE COMO FUNCIONA EL ENT_QUOTES
+                    // ! ¿Qué caracteres convierte?
+                    // ? Por defecto (sin este parámetro), la función solo convierte comillas dobles ("). 
+                    // ? Al añadir ENT_QUOTES, le ordenas que también convierta las comillas simples (').
+                    // ? Comilla doble (") se convierte en &quot;
+                    // ? Comilla simple (') se convierte en &#039;
+                    // ? 2. ¿Para qué se usa aquí? (Seguridad Fase 5)
+                    // ? El uso principal es blindar tu tabla contra ataques de Cross-Site Scripting (XSS). 
+                    // ? Si un atacante logra insertar en el campo ID algo como: ' onmouseover='alert("XSS")
+                    /*
+                    Código PHP	                     Resultado en el Navegador (Código Fuente)	             Seguridad
+                    htmlspecialchars($id)	             3' o 1=1 (la comilla sigue ahí)	                 ⚠️ Media
+                    htmlspecialchars($id, ENT_QUOTES) 	3&#039; o 1=1 (la comilla se neutralizó)	         ✅ Total
+                    */
                     $tabla_html .= "<td>" . htmlspecialchars($fila['id'], ENT_QUOTES, 'UTF-8') . "</td>";
                     $tabla_html .= "<td><strong>" . htmlspecialchars($fila['nombre'], ENT_QUOTES, 'UTF-8') . "</strong></td>";
                     $tabla_html .= "<td>" . htmlspecialchars($fila['tipo'], ENT_QUOTES, 'UTF-8') . "</td>";
                     $tabla_html .= "<td>" . htmlspecialchars($fila['dias_cosecha'], ENT_QUOTES, 'UTF-8') . " días</td>";
                     $tabla_html .= "</tr>";
                 }
-
                 $tabla_html .= '</tbody></table></div>';
             } else {
                 $tabla_html = '<p style="text-align:center;color:#95a5a6;margin:80px 0;font-size:1.2em;">No hay cultivos registrados todavía.</p>';
             }
-
+            // & Cierra la sentencia preparada
             mysqli_stmt_close($stmt);
         } else {
             error_log("Error preparando consulta SELECT cultivos: " . mysqli_error($conexion));
@@ -66,256 +105,7 @@ if (isset($_POST['listarSentenciaSQL'])) {
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700&family=Playfair+Display:wght@700&display=swap"
         rel="stylesheet">
-    <style>
-        :root {
-            --verde1: #9aff4d;
-            --verde2: #00bfff;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            min-height: 100vh;
-            background: linear-gradient(135deg, #003314, #005020);
-            font-family: 'Inter', sans-serif;
-            color: #fff;
-            overflow-x: hidden;
-            position: relative;
-        }
-
-        .content {
-            position: relative;
-            z-index: 10;
-            padding: 40px 20px;
-            min-height: 100vh;
-        }
-
-        .mensajeExito {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 3.2rem;
-            font-weight: 800;
-            background: linear-gradient(90deg, #d4ff00, #4dff9a);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            text-shadow: 0 0 25px rgba(212, 255, 0, 0.8);
-            z-index: 9999;
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 1s;
-        }
-
-        .tituloGestionCultivos {
-            font-family: "Playfair Display", serif;
-            font-size: 68px;
-            font-weight: 900;
-            text-align: center;
-            margin: 40px 0 60px;
-            background: linear-gradient(90deg, #9aff4d, #ccff80, #9aff4d);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
-        }
-
-        .bloqueBotones {
-            text-align: center;
-            margin-bottom: 80px;
-        }
-
-        .button {
-            background: linear-gradient(135deg, var(--verde1), var(--verde2));
-            color: #111;
-            border: none;
-            border-radius: 16px;
-            padding: 18px 40px;
-            margin: 12px;
-            font-size: 18px;
-            font-weight: 700;
-            cursor: pointer;
-            box-shadow: 0 12px 30px rgba(0, 191, 255, 0.5);
-            transition: all .3s ease;
-        }
-
-        .button:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 25px 45px rgba(154, 255, 77, 0.8);
-        }
-
-        /* Bloques cristal */
-        .container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin: 80px 0;
-        }
-
-        .container .glass {
-            /* ... todo tu CSS cristal permanece igual ... */
-            position: relative;
-            width: 180px;
-            height: 200px;
-            background: linear-gradient(#fff2, transparent);
-            border: 1px solid rgba(255, 255, 255, .1);
-            box-shadow: 0 25px 25px rgba(0, 0, 0, .25);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            transition: .5s;
-            border-radius: 10px;
-            margin: 0 -45px;
-            backdrop-filter: blur(10px);
-            transform: rotate(calc(var(--r)*1deg));
-            cursor: pointer;
-        }
-
-        .container .glass:hover {
-            transform: rotate(0) translateY(-10px);
-            margin: 0 20px;
-            background: rgba(255, 255, 255, .2);
-            box-shadow: 0 0 25px var(--verde1), 0 10px 30px rgba(0, 0, 0, .5);
-            border: 1px solid var(--verde1);
-        }
-
-        .container .glass:hover svg {
-            fill: var(--verde1);
-            transform: scale(1.2);
-            filter: drop-shadow(0 0 8px var(--verde1));
-        }
-
-        .container .glass::before {
-            content: attr(data-text);
-            position: absolute;
-            bottom: 0;
-            width: 100%;
-            height: 40px;
-            background: rgba(255, 255, 255, .05);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: #fff;
-            font-weight: 600;
-            font-size: 1.1em;
-        }
-
-        .container .glass svg {
-            font-size: 2.5em;
-            fill: #fff;
-        }
-
-        /* Reloj */
-        .card {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            width: 280px;
-            height: 150px;
-            background: rgba(0, 51, 20, .6);
-            border: 1px solid rgba(154, 255, 77, .3);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, .3), 0 0 20px rgba(154, 255, 77, .4);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            color: white;
-            z-index: 9999;
-            transition: all .3s;
-        }
-
-        .card:hover {
-            box-shadow: 0 8px 32px rgba(0, 0, 0, .5), 0 0 30px rgba(154, 255, 77, .6);
-        }
-
-        .time-text {
-            font-size: 50px;
-            margin-left: 15px;
-            font-weight: 600;
-        }
-
-        .time-sub-text {
-            color: var(--verde1);
-        }
-
-        .day-text {
-            font-size: 18px;
-            margin-left: 15px;
-            opacity: .8;
-        }
-
-        .moon {
-            position: absolute;
-            right: 15px;
-            top: 15px;
-            color: var(--verde1);
-            font-size: 20px;
-        }
-
-        /* Tabla */
-        .table-container {
-            width: 90%;
-            max-width: 1100px;
-            margin: 60px auto;
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, .5);
-            border: 1px solid rgba(154, 255, 77, .5);
-            background: rgba(255, 255, 255, .97);
-            backdrop-filter: blur(10px);
-        }
-
-        .styled-table {
-            width: 100%;
-            border-collapse: collapse;
-            color: #111;
-        }
-
-        .styled-table thead {
-            background: linear-gradient(135deg, #005c26, #003314);
-            color: white;
-        }
-
-        .styled-table th,
-        .styled-table td {
-            padding: 20px;
-            text-align: left;
-        }
-
-        .styled-table tbody tr:hover {
-            background: rgba(154, 255, 77, .35);
-        }
-
-        @media (max-width:768px) {
-            .tituloGestionCultivos {
-                font-size: 48px;
-            }
-
-            .button {
-                display: block;
-                width: 90%;
-                max-width: 340px;
-                margin: 15px auto;
-            }
-
-            .card {
-                width: 240px;
-                height: 130px;
-                top: 10px;
-                right: 10px;
-            }
-
-            .time-text {
-                font-size: 40px;
-            }
-        }
-    </style>
+        <link rel="stylesheet" href="style-index.css">
 </head>
 
 <body>
@@ -375,7 +165,7 @@ if (isset($_POST['listarSentenciaSQL'])) {
     </div>
 
     <script>
-        function llevarAlSoporte(){
+        function llevarAlSoporte() {
             window.location.href = "soporte.php";
         }
         // Reloj en formato 24h

@@ -1,0 +1,165 @@
+/* ============================================================
+   VARIABLES GLOBALES ( Centralización de diseño)
+   ============================================================ */
+:root {
+    --verde1: #9aff4d;
+    /* Verde lima neón brillante */
+    --verde2: #00bfff;
+    /* Azul cielo para degradados reactivos */
+}
+
+/* RESET GENERAL: Limpieza de márgenes del navegador */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* ============================================================
+   CUERPO Y FONDO (DISEÑO NOCTURNO)
+   ============================================================ */
+body {
+    min-height: 100vh;
+    /* Fondo profundo que simula el ambiente nocturno de la huerta */
+    background: linear-gradient(135deg, #003314, #005020);
+    font-family: 'Inter', sans-serif;
+    color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.content {
+    width: 100%;
+    max-width: 500px;
+    padding: 20px;
+}
+
+/* ============================================================
+   TARJETA GLASSMORPHISM (CRISTAL)
+   ============================================================ */
+.card {
+    /* Efecto de cristal translúcido mediante desenfoque de fondo */
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 20px;
+    padding: 40px;
+    box-shadow: 0 25px 45px rgba(0, 0, 0, 0.2);
+}
+
+h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.5rem;
+    text-align: center;
+    margin-bottom: 30px;
+    /* Degradado de texto recortado mediante clip */
+    background: linear-gradient(90deg, var(--verde1), #fff);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+/* ============================================================
+   CAMPOS DE ENTRADA (ESTILO CRISTAL REACTIVO)
+   ============================================================ */
+.field {
+    margin-bottom: 20px;
+}
+
+.field label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: var(--verde1);
+}
+
+.field input,
+.field select {
+    width: 100%;
+    padding: 12px;
+    /* Los campos heredan la estética de cristal para armonizar el diseño */
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    color: #fff;
+    font-size: 1rem;
+    outline: none;
+    transition: 0.3s;
+}
+
+.field input:focus,
+.field select:focus {
+    /* Iluminación lima en focus para guiar la atención del usuario */
+    border-color: var(--verde1);
+    box-shadow: 0 0 10px var(--verde1);
+}
+
+.field option {
+    background: #003314;
+    /* Fondo oscuro para que el texto sea legible en el select */
+}
+
+/* ============================================================
+   BOTONES Y ACCIONES (GRADIENTES NEÓN)
+   ============================================================ */
+.button {
+    width: 100%;
+    /* Degradado neón corporativo para resaltar acciones principales */
+    background: linear-gradient(135deg, var(--verde1), var(--verde2));
+    color: #111;
+    border: none;
+    border-radius: 12px;
+    padding: 15px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: 0.3s;
+    box-shadow: 0 5px 15px rgba(154, 255, 77, 0.3);
+}
+
+.button:hover {
+    transform: translateY(-3px);
+    /* Elevación física en hover */
+    box-shadow: 0 8px 25px var(--verde1);
+}
+
+.button-secondary {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    margin-top: 15px;
+}
+
+.button-secondary:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* ============================================================
+   SISTEMA DE MENSAJERÍA (ÉXITO, ERROR, ADVERTENCIA)
+   ============================================================ */
+.msg {
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    text-align: center;
+    font-weight: 600;
+}
+
+.msg.success {
+    background: rgba(154, 255, 77, 0.2);
+    border: 1px solid var(--verde1);
+    color: var(--verde1);
+}
+
+.msg.error {
+    background: rgba(255, 99, 71, 0.2);
+    border: 1px solid #ff6347;
+    color: #ff6347;
+}
+
+.msg.warning {
+    background: rgba(255, 140, 66, 0.2);
+    border: 1px solid #ff8c42;
+    color: #ff8c42;
+}
