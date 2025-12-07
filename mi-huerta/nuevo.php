@@ -1,72 +1,56 @@
 <?php
-// CRÍTICO: Mostrar todos los errores (solo en desarrollo)
+// Configuración de errores (ini_set)
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
+
+// Verificación de existencia del archivo de conexión
+if (!file_exists("conexion.php")) {
+    die("Error crítico: El archivo 'conexion.php' no existe en este directorio.");
+}
 require_once "conexion.php";
 
-// ===================================================================
-// FUNCIÓN PARA DETERMINAR EL CICLO DE CULTIVO
-// ===================================================================
 function cicloCultivo(int $dias): string
 {
-    if ($dias < 20) {
+    if ($dias < 20)
         return "Corto";
-    } elseif ($dias < 50) {
+    if ($dias < 50)
         return "Medio";
-    } else {
-        return "Tardío";
-    }
+    return "Tardío";
 }
 
-// Inicialización de variables
 $conexion_status_msg = "<span style='color:#ff6347;'>Desconectado</span>";
 $mensaje = "";
-$conexion = null;
 
-// 1. PROCESAMIENTO DEL FORMULARIO
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-
     $conexion = conectarBDD();
 
     if (!$conexion) {
-        $conexion_status_msg = "<span style='color:#ff6347;'>Desconectado</span>";
-        $mensaje = "<div class='msg error'>No se pudo conectar a la base de datos. Verifique que MySQL esté activo y que exista la BDD 'mi_huerta'.</div>";
+        $mensaje = "<div class='msg error'>Error de conexión a la base de datos.</div>";
     } else {
         mysqli_set_charset($conexion, "utf8mb4");
         $conexion_status_msg = "<span style='color:#00a878;'>Conectado</span>";
 
-        // Lectura y sanitización de datos
-        $id = null;
-        $id_input = filter_input(INPUT_POST, 'id', FILTER_VALIDATE_INT);
-        if ($id_input !== false && $id_input !== null) {
-            $id = (int) $id_input;
-        }
-
-        $nombre = trim(filter_input(INPUT_POST, 'nombre', FILTER_UNSAFE_RAW) ?? '');
-        $tipo = trim(filter_input(INPUT_POST, 'tipo', FILTER_UNSAFE_RAW) ?? '');
-
-        $dias_input = filter_input(INPUT_POST, 'dias', FILTER_VALIDATE_INT);
-        $dias = ($dias_input !== false && $dias_input !== null) ? (int) $dias_input : 0;
-
+        // Sanitización de inputs
+        $id = filter_input(INPUT_POST, 'id', FILTER_VALIDATE_INT) ?: null;
+        $nombre = trim(filter_input(INPUT_POST, 'nombre', FILTER_SANITIZE_SPECIAL_CHARS));
+        $tipo = trim(filter_input(INPUT_POST, 'tipo', FILTER_SANITIZE_SPECIAL_CHARS));
+        $dias = filter_input(INPUT_POST, 'dias', FILTER_VALIDATE_INT) ?: 0;
         $ciclo = cicloCultivo($dias);
 
-        // Validación básica
         if (empty($nombre) || empty($tipo) || $dias <= 0) {
-            $mensaje = "<div class='msg error'>Rellena todos los campos obligatorios correctamente.</div>";
+            $mensaje = "<div class='msg error'>Por favor, completa los campos correctamente.</div>";
         } else {
-            $exito = false;
-            $new_id = null;
-
-            // Decidimos qué consulta usar
+            // SENTENCIAS PREPARADAS (Prepared Statements)
             if ($id !== null) {
                 $sql = "INSERT INTO cultivos (id, nombre, tipo, dias_cosecha, ciclo_cultivos) VALUES (?, ?, ?, ?, ?)";
             } else {
                 $sql = "INSERT INTO cultivos (nombre, tipo, dias_cosecha, ciclo_cultivos) VALUES (?, ?, ?, ?)";
             }
 
-            if ($stmt = mysqli_prepare($conexion, $sql)) {
+            $stmt = mysqli_prepare($conexion, $sql);
 
+            if ($stmt) {
                 if ($id !== null) {
                     mysqli_stmt_bind_param($stmt, "issis", $id, $nombre, $tipo, $dias, $ciclo);
                 } else {
@@ -74,44 +58,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
 
                 if (mysqli_stmt_execute($stmt)) {
-                    $exito = true;
                     $new_id = $id ?? mysqli_insert_id($conexion);
+                    $mensaje = "<div class='msg success'>Cultivo '<strong>$nombre</strong>' guardado (ID: $new_id)</div>";
                 } else {
-                    // Posible duplicado de ID manual
-                    if (mysqli_stmt_errno($stmt) == 1062 && $id !== null) {
-                        // Fallback: insertar sin ID
-                        $sql_fallback = "INSERT INTO cultivos (nombre, tipo, dias_cosecha, ciclo_cultivos) VALUES (?, ?, ?, ?)";
-                        if ($stmt2 = mysqli_prepare($conexion, $sql_fallback)) {
-                            mysqli_stmt_bind_param($stmt2, "ssis", $nombre, $tipo, $dias, $ciclo);
-                            if (mysqli_stmt_execute($stmt2)) {
-                                $exito = true;
-                                $new_id = mysqli_insert_id($conexion);
-                                $mensaje = "<div class='msg warning'>El ID $id ya existía → se asignó automáticamente el ID <strong>$new_id</strong></div>";
-                            }
-                            mysqli_stmt_close($stmt2);
-                        }
+                    // Manejo de error de duplicado
+                    if (mysqli_stmt_errno($stmt) == 1062) {
+                        $mensaje = "<div class='msg warning'>El ID $id ya existe. Use otro o déjelo vacío.</div>";
+                    } else {
+                        $mensaje = "<div class='msg error'>Error SQL: " . mysqli_stmt_error($stmt) . "</div>";
                     }
                 }
                 mysqli_stmt_close($stmt);
             }
-
-            // Mensaje final de éxito (si no hubo mensaje de fallback)
-            if ($exito && empty($mensaje)) {
-                $mensaje = "<div class='msg success'>Cultivo '<strong>" . htmlspecialchars($nombre) . "</strong>' insertado con ID <strong>$new_id</strong> (Ciclo: <strong>$ciclo</strong>)</div>";
-            }
         }
         mysqli_close($conexion);
-    }
-
-} else {
-    // Solo carga de página (sin POST)
-    $conexion = conectarBDD();
-    if ($conexion) {
-        $conexion_status_msg = "<span style='color:#00a878;'>Conectado</span>";
-        mysqli_set_charset($conexion, "utf8mb4");
-        mysqli_close($conexion);
-    } else {
-        $conexion_status_msg = "<span style='color:#ff6347;'>Desconectado</span>";
     }
 }
 ?>
