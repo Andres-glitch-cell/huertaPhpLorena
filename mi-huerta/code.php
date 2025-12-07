@@ -138,7 +138,7 @@
                 <div class="dot dot-yellow"></div>
                 <div class="dot dot-green"></div>
             </div>
-            <div class="file-name">gestion_cultivos.php — Visual Studio Code</div>
+            <div class="file-name">index.php — Visual Studio Code</div>
         </div>
 
         <div class="accent-line"></div>

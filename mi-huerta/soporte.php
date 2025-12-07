@@ -13,7 +13,7 @@ error_reporting(E_ALL);
 $nombre_creador = htmlspecialchars("Andrés", ENT_QUOTES, 'UTF-8');
 $github_url = "https://github.com/Andres-glitch-cell";
 // AQUÍ PUEDES PONER TU IMAGEN: puede ser una ruta local o un enlace de GitHub
-$avatar_url = "https://avatars.githubusercontent.com/u/152345037?v=4";
+$avatar_url = "image.png";
 $mensaje_bonito = "Gracias por explorar este proyecto. No olvides apoyar al creador para seguir cultivando código de calidad.";
 ?>
 <!DOCTYPE html>
@@ -60,15 +60,16 @@ $mensaje_bonito = "Gracias por explorar este proyecto. No olvides apoyar al crea
 
         /* AJUSTE PARA MOSTRAR IMAGEN EN EL AVATAR */
         .avatar {
-            width: 140px;
-            height: 140px;
-            border-radius: 50%;
+            width: 120px;
+            height: 120px;
+            border-radius: 30%;
             border: 3px solid var(--verde-neon);
-            margin-bottom: 20px;
+            margin-bottom: 10px;
             display: inline-block;
             background-image: url('<?php echo $avatar_url; ?>');
             background-size: cover;
             background-position: center;
+            margin-left: 10px;
             box-shadow: 0 0 15px rgba(154, 255, 77, 0.2);
         }
 
